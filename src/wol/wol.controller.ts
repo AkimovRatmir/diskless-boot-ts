@@ -1,7 +1,7 @@
 import { Controller, Post, Body } from '@nestjs/common';
-import { PcService } from './pc.service';
+import { PcService } from './wol.service';
 
-@Controller('pc')
+@Controller('wol')
 export class PcController {
   constructor(private readonly pcService: PcService) {}
 

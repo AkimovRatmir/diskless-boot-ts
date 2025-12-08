@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { PcService } from './pc.service';
-import { PcController } from './pc.controller';
+import { PcService } from './wol.service';
+import { PcController } from './wol.controller';
 
 @Module({
   providers: [PcService],

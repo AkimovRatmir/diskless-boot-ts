@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: postgres_with_postgis_pgvector
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pccontrol}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in docker/.env}
+      POSTGRES_DB: mainServ
+    ports:
+      - "5432:5432"
+    networks:
+      - proxynet
+
+networks:
+  proxynet:
+    name: custom_network
