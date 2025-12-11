@@ -16,7 +16,7 @@
         [string]$BaseVHDXPath,
 
         # Путь к вашему скрипту Wake-on-LAN
-        [string]$WoLScriptPath = "C:\Scripts\wol2.ps1"
+        [string]$WoLScriptPath = "C:\Project\pccontrol\scripts\wol2.ps1"
     )
 
     # --- 1. Формирование переменных пути ---
@@ -108,7 +108,7 @@
             Write-Host "✅ Команда WoL успешно отправлена для MAC: $MACAddress."
         }
         catch {
-            Write-Error "❌ Ошибка при выполнении WoL. Проверьте содержимое wol2.ps1."
+            Write-Error "❌ Error execuring WoL. Check content of wol2.ps1."
         }
     } else {
         Write-Error "❌ Скрипт WoL не найден. Компьютер не будет включен."
@@ -117,5 +117,4 @@
     Write-Host "--- ✅ ПРОЦЕСС ЗАВЕРШЕН ---"
 }
 
-# --- ПРИМЕР ВЫЗОВА ---
-Start-IscsiClientSession -ComputerName "PC03" -MACAddress "AA-BB-CC-DD-EE-FF" -BaseVHDXPath "C:\VHDs\GamePC.vhdx"
+# Start-IscsiClientSession -ComputerName $ComputerName -MACAddress $MACAddress -BaseVHDXPath $BaseVHDXPath

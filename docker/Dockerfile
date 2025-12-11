@@ -1,13 +1,9 @@
-FROM postgres:18
+FROM postgis/postgis:16-3.4
 
-RUN apt-get update && apt-get install -y \
-    postgresql-18-postgis-3 \
-    postgresql-18-pgvector \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y postgresql-16-pgvector && \
+    rm -rf /var/lib/apt/lists/*
 
 COPY init.sql /docker-entrypoint-initdb.d/
-
-WORKDIR /var/lib/postgresql/data
 
 EXPOSE 5432

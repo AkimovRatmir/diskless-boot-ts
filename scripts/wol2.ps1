@@ -54,9 +54,4 @@
         Write-Error "Ошибка при отправке UDP-пакета: $($_.Exception.Message)"
     }
 }
-param(
-    [Parameter(Mandatory=$true)]
-    [string]$Mac
-)
-
-Send-WakeOnLan -MacAddress $Mac
+# Send-WakeOnLan -MacAddress "AA-BB-CC-DD-EE-FF"
