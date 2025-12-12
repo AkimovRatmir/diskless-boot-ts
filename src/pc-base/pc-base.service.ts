@@ -1,8 +1,8 @@
 import { Inject, Injectable, InternalServerErrorException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { clientPcs } from "../../database/schema";
-import { CreatePcDto } from "./dto/create-pc.dto"; 
-import { UpdatePcDto } from "./dto/update-pc.dto"; 
+import { CreatePcDto } from "./dto/create-pc.dto";
+import { UpdatePcDto } from "./dto/update-pc.dto";
 import { spawn } from "child_process";
 
 @Injectable()
@@ -10,95 +10,78 @@ export class PcBaseService {
 
   // private scriptPath = "C:\\Project\\pccontrol\\scripts\\StartSession.ps1";
 
-  constructor(@Inject("DRIZZLE") private db: any) {}
+  constructor(@Inject("DRIZZLE") private db: any) { }
 
-  // async create(dto: CreatePcDto) {
-  //   const [pc] = await this.db.insert(clientPcs).values(dto).returning();
-  //   return pc;
-  // }
-async create(dto: CreatePcDto) {
-    // 1. Database Creation (Start of Transaction)
+  async create(dto: CreatePcDto) {
     const [pc] = await this.db.insert(clientPcs).values(dto).returning();
+    return pc;
+  }
 
-    // Use clear variable names from the PC object
+  async turnOn(id: number) {
+    const [pc] = await this.db
+      .select()
+      .from(clientPcs)
+      .where(eq(clientPcs.id, id));
+
+    if (!pc) {
+      throw new InternalServerErrorException("PC not found");
+    }
+
     const computerName = pc.name;
     const macAddress = pc.mac;
-    
-    // Static paths
-    const scriptPath = "C:\\Project\\pccontrol\\scripts\\StartSession.ps1"; 
-    const baseVhdPath = "C:\\VHDs\\GamePC.vhdx"; 
-    
-    console.log(`[DB] Created PC: ${computerName} (${macAddress}). Starting script...`); 
 
-    // Define the redirect operator to merge ALL PowerShell streams to stdout
-    const redirectOperator = '*>&1'; 
+    const scriptPath = "C:\\Project\\pccontrol\\scripts\\StartSession.ps1";
+    const baseVhdPath = "C:\\VHDs\\GamePC.vhdx";
 
-    // --- 2. Construct the Robust PowerShell Command ---
-    // We use the '& { ... }' script block for reliable execution.
-    // We use single quotes (') for PowerShell string arguments.
-    // We append the redirection operator to capture Write-Host/etc.
+    console.log(`[ACTION] Turning ON PC: ${computerName} (${macAddress})`);
+
+    const redirectOperator = "*>&1";
+
     const psCommand = `& { . '${scriptPath}'; Start-IscsiClientSession -ComputerName '${computerName}' -MACAddress '${macAddress}' -BaseVHDXPath '${baseVhdPath}' } ${redirectOperator}`;
 
-    // --- 3. Spawn the Process ---
     const ps = spawn("powershell.exe", [
-        "-ExecutionPolicy", "Bypass",
-        "-NoProfile", // Speeds up execution by skipping loading of user profiles
-        "-Command", 
-        psCommand, // Pass the fully constructed command string
+      "-ExecutionPolicy", "Bypass",
+      "-NoProfile",
+      "-Command",
+      psCommand
     ]);
 
     let stdout = "";
     let stderr = "";
 
-    // --- 4. Capture and Log Output Streams in Real-Time ---
-    
-    // All success, host, and warning output should now be here due to *>&1
     ps.stdout.on("data", data => {
-        const output = data.toString();
-        stdout += output;
-        // Log the output directly to your backend console as it comes in
-        console.log(`[PS Log] ${output.trim()}`); 
-    });
-    
-    // This should only capture fatal process/non-PowerShell errors
-    ps.stderr.on("data", data => {
-        const errorOutput = data.toString();
-        stderr += errorOutput;
-        // Log stderr separately for immediate visibility
-        console.error(`[PS CRITICAL ERROR] ${errorOutput.trim()}`); 
+      const out = data.toString();
+      stdout += out;
+      console.log(`[PS Log] ${out.trim()}`);
     });
 
-    // --- 5. Wait for the Process to Finish ---
+    ps.stderr.on("data", data => {
+      const err = data.toString();
+      stderr += err;
+      console.error(`[PS ERROR] ${err.trim()}`);
+    });
+
     const exitCode = await new Promise<number>((resolve) => {
-      // Resolve with the exit code (0 for success, >0 for failure)
-      ps.on("close", resolve); 
-      
-      // Handle the case where the spawned process itself fails to start (e.g., powershell.exe not found)
-      ps.on('error', (err) => {
-          console.error(`[SPAWN ERROR] Failed to start process: ${err.message}`);
-          resolve(1); 
+      ps.on("close", resolve);
+      ps.on("error", err => {
+        console.error(`[SPAWN ERROR] ${err.message}`);
+        resolve(1);
       });
     });
 
-    // --- 6. Error Handling and Cleanup (Rollback) ---
     if (exitCode !== 0) {
-      // Rollback: Delete the PC entry created in step 1 if the script failed
-      await this.db.delete(clientPcs).where(eq(clientPcs.id, pc.id));
-      console.error(`[ROLLBACK] Deleting PC ${computerName} due to script failure (Exit Code: ${exitCode}).`);
-
       throw new InternalServerErrorException({
-        message: "Failed to start iSCSI session. Check script log for details.",
-        // Provide both error and stdout output for maximum debugging info
-        error: stderr.trim() || 'Script failed with exit code, but no stderr captured.',
+        message: "Failed to start iSCSI session",
+        error: stderr.trim() || "No stderr output",
         output: stdout.trim(),
-        exitCode: exitCode,
+        exitCode
       });
     }
 
-    // --- 7. Success Return ---
-    console.log(`[SUCCESS] iSCSI session setup complete for ${computerName}.`);
+    console.log(`[SUCCESS] PC turned ON: ${computerName}`);
+
     return {
-      status: "created",
+      status: "session_started",
       pc,
       scriptLog: stdout.trim(),
     };
