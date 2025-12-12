@@ -31,7 +31,7 @@ export class PcBaseService {
     const macAddress = pc.mac;
 
     const scriptPath = "C:\\Project\\pccontrol\\scripts\\StartSession.ps1";
-    const baseVhdPath = "C:\\VHDs\\GamePC.vhdx";
+    const baseVhdPath = pc.base_vhdx;
 
     console.log(`[ACTION] Turning ON PC: ${computerName} (${macAddress})`);
 

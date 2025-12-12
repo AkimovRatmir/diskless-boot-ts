@@ -8,6 +8,13 @@
       "when": 1764735658190,
       "tag": "0000_romantic_post",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765529656095,
+      "tag": "0001_famous_exodus",
+      "breakpoints": true
     }
   ]
 }

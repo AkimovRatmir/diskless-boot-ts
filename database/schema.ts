@@ -5,5 +5,6 @@ export const clientPcs = pgTable("client_pcs", {
   name: varchar("name", { length: 50 }).notNull(),
   mac: varchar("mac", { length: 17 }).notNull().unique(),
   ip: varchar("ip", { length: 15 }).notNull(),
+  baseVhdx: varchar("base_vhdx", { length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

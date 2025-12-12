@@ -12,4 +12,8 @@ export class CreatePcDto {
   @IsString()
   @IsNotEmpty()
   ip: string;
+
+  @IsString()
+  @IsNotEmpty()
+  base_vhdx: string;
 }

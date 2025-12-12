@@ -1,0 +1,1 @@
+ALTER TABLE "client_pcs" ADD COLUMN "base_vhdx" varchar(255) NOT NULL;
