@@ -15,5 +15,5 @@ export class CreatePcDto {
 
   @IsString()
   @IsNotEmpty()
-  base_vhdx: string;
+  baseVhdx: string;
 }
