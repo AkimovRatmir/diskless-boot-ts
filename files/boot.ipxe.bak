@@ -1,0 +1,25 @@
+#!ipxe
+dhcp
+
+set keep-san 1
+set initiator-iqn iqn.2025-12.local.pccontrol:${net0/mac}
+
+echo =========================
+echo Attaching iSCSI target...
+echo =========================
+
+# First attach only (no boot) — this forces SCSI probes
+sanhook iscsi:192.168.2.1:::0:iqn.2025-12.local.pccontrol:disk1 || goto failed
+
+echo iSCSI disk attached, probing...
+sleep 2
+
+# Now try to boot from the SAN disk
+sanboot --drive 0x80 || goto failed
+
+:failed
+echo =========================
+echo SANBOOT FAILED
+echo Dropping to iPXE shell
+echo =========================
+shell

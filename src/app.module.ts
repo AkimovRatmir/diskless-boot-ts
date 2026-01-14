@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { PcModule } from './wol/wol.module';
 import { PcBaseModule } from './pc-base/pc-base.module';
 import { DatabaseModule } from './db/database.module';  
+import { PxeHttpModule } from './pxeHttp/pxe-http.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { DatabaseModule } from './db/database.module';
     DatabaseModule,
     PcModule,
     PcBaseModule,
+    PxeHttpModule,
   ],
   controllers: [AppController], // REMOVE PcBaseController (belongs to PcBaseModule)
   providers: [AppService],

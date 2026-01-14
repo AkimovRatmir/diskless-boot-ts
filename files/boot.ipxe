@@ -1,0 +1,8 @@
+#!ipxe
+dhcp
+echo "Test"
+set net0/gateway 0.0.0.0
+set keep-san 1
+set root-path iscsi:192.168.2.1::::iqn.2025-12.local.pccontrol:disk1
+sanboot ${root-path}
+boot
