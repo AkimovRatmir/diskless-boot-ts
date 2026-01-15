@@ -1,10 +1,10 @@
-import { pgTable, serial, varchar, timestamp } from "drizzle-orm/pg-core";
+// import type { Config } from 'drizzle-kit';
 
-export const clientPcs = pgTable("client_pcs", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 50 }).notNull(),
-  mac: varchar("mac", { length: 17 }).notNull().unique(),
-  ip: varchar("ip", { length: 15 }).notNull(),
-  baseVhdx: varchar("base_vhdx", { length: 255 }).notNull(),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// export default {
+//   schema: './src/db/schema/**/*.ts',
+//   out: './drizzle',
+//   driver: 'pg',
+//   dbCredentials: {
+//     connectionString: process.env.DATABASE_URL,
+//   },
+// } satisfies Config;

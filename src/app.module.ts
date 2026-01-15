@@ -3,7 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PcModule } from './wol/wol.module';
-import { PcBaseModule } from './pc-base/pc-base.module';
+
+import { ComputersModule } from './computers/computer.module';
+import { StorageResourcesModule } from './storage_resources/storage-resources.module';
+import { ComputerGroupsModule } from './computer_groups/computer-groups.module';
+
 import { DatabaseModule } from './db/database.module';  
 import { PxeHttpModule } from './pxeHttp/pxe-http.module';
 
@@ -14,10 +18,12 @@ import { PxeHttpModule } from './pxeHttp/pxe-http.module';
     }),
     DatabaseModule,
     PcModule,
-    PcBaseModule,
+    ComputersModule,
+    StorageResourcesModule,
+    ComputerGroupsModule,
     PxeHttpModule,
   ],
-  controllers: [AppController], // REMOVE PcBaseController (belongs to PcBaseModule)
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
