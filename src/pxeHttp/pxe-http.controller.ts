@@ -52,8 +52,7 @@ reboot
     const iqn = `iqn.2025-12.local.pccontrol:${computer.name}`;
 
     res.setHeader('Content-Type', 'text/plain');
-    res.send(`
-#!ipxe
+    res.send(`#!ipxe
 dhcp
 echo Booting ${computer.name}
 set net0/gateway 0.0.0.0
