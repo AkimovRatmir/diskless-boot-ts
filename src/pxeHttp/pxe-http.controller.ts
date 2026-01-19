@@ -49,7 +49,7 @@ reboot
 `);
     }
 
-    const iqn = `iqn.2025-12.local.pccontrol:pc-${computer.id}`;
+    const iqn = `iqn.2025-12.local.pccontrol:${computer.name}`;
 
     res.setHeader('Content-Type', 'text/plain');
     res.send(`
