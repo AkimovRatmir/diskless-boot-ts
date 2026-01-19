@@ -48,7 +48,7 @@ sleep 10
 reboot
 `);
     }
-
+    console.log("hi there")
     const iqn = `iqn.2025-12.local.pccontrol:${computer.name}`;
 
     res.setHeader('Content-Type', 'text/plain');
@@ -72,6 +72,7 @@ boot
       reqPath = '/autoexec.ipxe';
     }
 
+     console.log("hi here")
     const filePath = path.join(ROOT, reqPath);
 
     if (!filePath.startsWith(ROOT)) {
