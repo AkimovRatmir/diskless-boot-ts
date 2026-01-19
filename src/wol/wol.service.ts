@@ -5,7 +5,7 @@ import { spawn } from 'child_process';
 export class PcService {
   async turnOn(mac: string): Promise<any> {
     return new Promise((resolve, reject) => {
-      const scriptPath = '/Users/rat/pc-control/scripts/wol2.ps1'; // adjust if needed
+      const scriptPath = '/Users/rat/pc-control/scripts/wol2.ps1'; 
 
       const ps = spawn('powershell.exe', [
         '-ExecutionPolicy',

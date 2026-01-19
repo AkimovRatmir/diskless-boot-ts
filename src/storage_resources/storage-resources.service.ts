@@ -2,8 +2,8 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { storageResources } from 'src/db/schemas/storage-resources'; 
 import { eq } from 'drizzle-orm';
-import { CreateStorageResourceDto } from './dto /create-storage-resource.dto'; 
-import { UpdateStorageResourceDto } from './dto /update-storage-resource.dto';
+import { CreateStorageResourceDto } from './dto/create-storage-resource.dto'; 
+import { UpdateStorageResourceDto } from './dto/update-storage-resource.dto';
 
 @Injectable()
 export class StorageResourcesService {
