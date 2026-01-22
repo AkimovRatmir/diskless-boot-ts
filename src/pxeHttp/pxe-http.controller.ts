@@ -48,7 +48,6 @@ sleep 10
 reboot
 `);
     }
-    console.log("hi there")
     const iqn = `iqn.2025-12.local.pccontrol:${computer.name}`;
 
     res.setHeader('Content-Type', 'text/plain');
@@ -57,7 +56,7 @@ dhcp
 echo Booting ${computer.name}
 set net0/gateway 0.0.0.0
 set keep-san 1
-set root-path iscsi:192.168.2.1::::${iqn}
+set root-path iscsi:192.168.2.1::::iqn.1991-05.com.microsoft:win-qui3dm8ab3c-pc04-target
 sanboot \${root-path}
 boot
 `);
@@ -71,7 +70,6 @@ boot
       reqPath = '/autoexec.ipxe';
     }
 
-     console.log("hi here")
     const filePath = path.join(ROOT, reqPath);
 
     if (!filePath.startsWith(ROOT)) {
