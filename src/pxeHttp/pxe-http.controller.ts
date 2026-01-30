@@ -56,7 +56,7 @@ dhcp
 echo Booting ${computer.name}
 set net0/gateway 0.0.0.0
 set keep-san 1
-set root-path iscsi:192.168.2.1::::${iqn}
+set root-path iscsi:192.168.2.1::::iqn.1991-05.com.microsoft:win-qui3dm8ab3c-pc04-target
 sanboot \${root-path}
 boot
 `);
