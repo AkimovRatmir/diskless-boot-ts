@@ -1,0 +1,1 @@
+ALTER TABLE "clients" ALTER COLUMN "lease_time" DROP NOT NULL;

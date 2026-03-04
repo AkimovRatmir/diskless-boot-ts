@@ -10,6 +10,7 @@ import { ComputerGroupsModule } from './computer_groups/computer-groups.module';
 
 import { DatabaseModule } from './db/database.module';  
 import { PxeHttpModule } from './pxeHttp/pxe-http.module';
+import { ClientsModule } from './clients/clients.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { PxeHttpModule } from './pxeHttp/pxe-http.module';
     ComputersModule,
     StorageResourcesModule,
     ComputerGroupsModule,
+    ClientsModule,
     PxeHttpModule,
   ],
   controllers: [AppController],
