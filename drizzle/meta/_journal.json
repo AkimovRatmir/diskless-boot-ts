@@ -29,6 +29,13 @@
       "when": 1772620213201,
       "tag": "0003_optimal_korvac",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1772791844459,
+      "tag": "0004_crazy_red_hulk",
+      "breakpoints": true
     }
   ]
 }

@@ -54,6 +54,7 @@ export class ClientsService {
     return client.leaseTime;
   }
 
+
   async update(id: number, dto: UpdateClientDto) {
     if (dto.password) {
       dto.password = await bcrypt.hash(dto.password, SALT_ROUNDS);
