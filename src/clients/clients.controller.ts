@@ -36,6 +36,14 @@ export class ClientsController {
     return this.service.getLease(id);
   }
 
+  @Post(':id/purchase/:tarifId')
+  purchaseTarif(
+    @Param('id', ParseIntPipe) id: number,
+    @Param('tarifId', ParseIntPipe) tarifId: number,
+  ) {
+    return this.service.purchaseTarif(id, tarifId);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,

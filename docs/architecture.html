@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Control - Architecture Documentation</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --bg-card: #1a1d27;
+            --bg-code: #12141c;
+            --border: #2a2d3a;
+            --text: #e1e4ed;
+            --text-muted: #8b8fa3;
+            --accent: #6c5ce7;
+            --accent-light: #a29bfe;
+            --green: #00b894;
+            --blue: #0984e3;
+            --yellow: #fdcb6e;
+            --red: #d63031;
+            --orange: #e17055;
+            --pink: #fd79a8;
+            --cyan: #00cec9;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .layout { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            padding: 24px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-header h1 { font-size: 18px; font-weight: 700; color: var(--accent-light); }
+        .sidebar-header p { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+        .nav-group { margin-bottom: 8px; }
+
+        .nav-group-title {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .nav-link {
+            display: block;
+            padding: 6px 20px;
+            font-size: 13px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover { background: rgba(108, 92, 231, 0.1); }
+        .nav-link.active { background: rgba(108, 92, 231, 0.15); color: var(--accent-light); border-right: 2px solid var(--accent); }
+
+        .nav-divider { height: 1px; background: var(--border); margin: 12px 20px; }
+
+        /* Main */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 1100px;
+        }
+
+        .hero { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+        .hero h1 { font-size: 36px; font-weight: 800; margin-bottom: 8px; }
+        .hero p { font-size: 16px; color: var(--text-muted); max-width: 640px; }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--accent-light);
+            text-decoration: none;
+            margin-bottom: 24px;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Meta Grid */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .meta-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .meta-item .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .meta-item .value { font-size: 14px; font-weight: 600; }
+
+        /* Sections */
+        .section {
+            margin-bottom: 56px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header h2 { font-size: 24px; font-weight: 700; }
+
+        .section-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--accent-light);
+            font-weight: 600;
+        }
+
+        .section-desc {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px 24px;
+            margin-bottom: 16px;
+        }
+
+        .card h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card p { font-size: 14px; color: var(--text-muted); margin-bottom: 8px; }
+
+        /* Code */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 16px 18px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+            margin-bottom: 12px;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            background: var(--bg-code);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        .code-block .kw { color: var(--accent-light); }
+        .code-block .str { color: var(--green); }
+        .code-block .num { color: var(--yellow); }
+        .code-block .cmt { color: #636e72; }
+        .code-block .fn { color: var(--cyan); }
+        .code-block .type { color: var(--pink); }
+        .code-block .dir { color: var(--blue); }
+        .code-block .file { color: var(--text-muted); }
+        .code-block .highlight { color: var(--yellow); }
+        .code-block .arrow { color: var(--accent-light); }
+
+        /* Diagram */
+        .diagram-container {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 32px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        /* Module Graph */
+        .module-graph {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+            min-width: 600px;
+        }
+
+        .module-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .module-box {
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            min-width: 130px;
+            border: 2px solid;
+        }
+
+        .module-box.root { background: rgba(108, 92, 231, 0.15); border-color: var(--accent); color: var(--accent-light); }
+        .module-box.infra { background: rgba(9, 132, 227, 0.1); border-color: var(--blue); color: var(--blue); }
+        .module-box.feature { background: rgba(0, 184, 148, 0.1); border-color: var(--green); color: var(--green); }
+        .module-box.special { background: rgba(253, 203, 110, 0.1); border-color: var(--yellow); color: var(--yellow); }
+        .module-box.disabled { background: rgba(99, 110, 114, 0.1); border-color: #636e72; color: #636e72; border-style: dashed; }
+
+        .module-box small { display: block; font-size: 10px; font-weight: 400; opacity: 0.7; margin-top: 2px; }
+
+        .graph-arrow {
+            color: var(--text-muted);
+            font-size: 20px;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .graph-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        /* Flow Diagram */
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 16px 0;
+        }
+
+        .flow-step {
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .flow-step.client { background: rgba(253, 203, 110, 0.15); color: var(--yellow); border: 1px solid rgba(253, 203, 110, 0.3); }
+        .flow-step.server { background: rgba(108, 92, 231, 0.15); color: var(--accent-light); border: 1px solid rgba(108, 92, 231, 0.3); }
+        .flow-step.db { background: rgba(0, 184, 148, 0.15); color: var(--green); border: 1px solid rgba(0, 184, 148, 0.3); }
+        .flow-step.external { background: rgba(225, 112, 85, 0.15); color: var(--orange); border: 1px solid rgba(225, 112, 85, 0.3); }
+
+        .flow-arrow { color: var(--text-muted); font-size: 16px; }
+
+        /* Tables */
+        .arch-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .arch-table th {
+            text-align: left;
+            padding: 10px 14px;
+            background: var(--bg-code);
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .arch-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .arch-table tr:last-child td { border-bottom: none; }
+
+        .arch-table .mono {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            color: var(--accent-light);
+        }
+
+        /* Tags */
+        .tag {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 4px;
+        }
+
+        .tag.core { background: rgba(108, 92, 231, 0.2); color: var(--accent-light); }
+        .tag.db { background: rgba(0, 184, 148, 0.2); color: var(--green); }
+        .tag.security { background: rgba(214, 48, 49, 0.2); color: var(--red); }
+        .tag.dev { background: rgba(99, 110, 114, 0.2); color: var(--text-muted); }
+        .tag.runtime { background: rgba(9, 132, 227, 0.2); color: var(--blue); }
+        .tag.unused { background: rgba(99, 110, 114, 0.15); color: #636e72; }
+        .tag.warn { background: rgba(253, 203, 110, 0.2); color: var(--yellow); }
+
+        /* ER Diagram */
+        .er-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px 0;
+        }
+
+        .er-table {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            min-width: 200px;
+            overflow: hidden;
+        }
+
+        .er-table-header {
+            padding: 10px 14px;
+            background: var(--bg-code);
+            border-bottom: 1px solid var(--border);
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--accent-light);
+        }
+
+        .er-table-body { padding: 0; }
+
+        .er-field {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 14px;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(42, 45, 58, 0.5);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+        }
+
+        .er-field:last-child { border-bottom: none; }
+        .er-field .name { color: var(--text); }
+        .er-field .type { color: var(--text-muted); font-size: 11px; }
+        .er-field.pk .name { color: var(--yellow); }
+        .er-field.fk .name { color: var(--cyan); }
+
+        /* File Tree */
+        .file-tree {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+        }
+
+        .file-tree .folder { color: var(--blue); font-weight: 600; }
+        .file-tree .file { color: var(--text-muted); }
+        .file-tree .desc { color: #636e72; font-style: italic; }
+        .file-tree .indent { padding-left: 20px; }
+        .file-tree .indent2 { padding-left: 40px; }
+        .file-tree .indent3 { padding-left: 60px; }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent-light);
+            line-height: 1;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 6px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 24px 20px; }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>PC Control</h1>
+                <p>Architecture Docs</p>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Overview</div>
+                <a class="nav-link" href="#overview">Project Overview</a>
+                <a class="nav-link" href="#stats">Stats at a Glance</a>
+                <a class="nav-link" href="#tech-stack">Tech Stack</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Architecture</div>
+                <a class="nav-link" href="#file-structure">File Structure</a>
+                <a class="nav-link" href="#module-graph">Module Dependency Graph</a>
+                <a class="nav-link" href="#di-pattern">Dependency Injection</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Database</div>
+                <a class="nav-link" href="#db-architecture">Database Layer</a>
+                <a class="nav-link" href="#er-diagram">ER Diagram</a>
+                <a class="nav-link" href="#migrations">Migrations</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Flows</div>
+                <a class="nav-link" href="#request-flow">Request Lifecycle</a>
+                <a class="nav-link" href="#pxe-flow">PXE Boot Flow</a>
+                <a class="nav-link" href="#wol-flow">Wake-on-LAN Flow</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Infrastructure</div>
+                <a class="nav-link" href="#bootstrap">Bootstrap & Config</a>
+                <a class="nav-link" href="#docker">Docker Setup</a>
+                <a class="nav-link" href="#scripts-section">Scripts & Tooling</a>
+                <a class="nav-link" href="#dependencies">Dependencies</a>
+            </div>
+
+            <div class="nav-divider"></div>
+            <a class="nav-link" href="api-documentation.html">&#8592; API Documentation</a>
+        </nav>
+
+        <!-- Main -->
+        <main class="main">
+            <a class="back-link" href="api-documentation.html">&#8592; Back to API Docs</a>
+
+            <!-- Hero -->
+            <section class="hero" id="overview">
+                <h1>Architecture Overview</h1>
+                <p>PC Control is a NestJS-based server for managing diskless PXE-booted computers via iSCSI, with Wake-on-LAN power management, client session control, and tariff-based billing.</p>
+
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <div class="label">Framework</div>
+                        <div class="value">NestJS 11</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Language</div>
+                        <div class="value">TypeScript 5.7</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Database</div>
+                        <div class="value">PostgreSQL 16</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">ORM</div>
+                        <div class="value">Drizzle 0.44</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Runtime</div>
+                        <div class="value">Node.js (ES2023)</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Port</div>
+                        <div class="value">80 (0.0.0.0)</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats -->
+            <section class="section" id="stats">
+                <div class="section-header">
+                    <h2>At a Glance</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="number">9</div>
+                        <div class="label">Modules</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">8</div>
+                        <div class="label">Controllers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">8</div>
+                        <div class="label">Services</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">27+</div>
+                        <div class="label">Endpoints</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">5</div>
+                        <div class="label">DB Tables</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">10</div>
+                        <div class="label">DTOs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">5</div>
+                        <div class="label">Migrations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number">40+</div>
+                        <div class="label">Dependencies</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tech Stack -->
+            <section class="section" id="tech-stack">
+                <div class="section-header">
+                    <h2>Tech Stack</h2>
+                </div>
+
+                <div class="card">
+                    <h3>Core</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">NestJS</td><td>11.0.1</td><td>Application framework (controllers, DI, modules)</td></tr>
+                            <tr><td class="mono">TypeScript</td><td>5.7.3</td><td>Language (compiled to ES2023)</td></tr>
+                            <tr><td class="mono">Express</td><td>via @nestjs/platform-express</td><td>HTTP adapter</td></tr>
+                            <tr><td class="mono">RxJS</td><td>7.8.1</td><td>Reactive streams (NestJS internals)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Database</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">PostgreSQL</td><td>16</td><td>Primary database (via Docker)</td></tr>
+                            <tr><td class="mono">Drizzle ORM</td><td>0.44.7</td><td>Type-safe SQL query builder & schema definitions</td></tr>
+                            <tr><td class="mono">Drizzle Kit</td><td>0.31.7</td><td>Schema migration tool</td></tr>
+                            <tr><td class="mono">pg</td><td>8.16.3</td><td>PostgreSQL client driver (node-postgres)</td></tr>
+                            <tr><td class="mono">PostGIS</td><td>3.4</td><td>Spatial extension (Docker image)</td></tr>
+                            <tr><td class="mono">pgvector</td><td>--</td><td>Vector extension (installed in Docker)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Validation & Security</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">class-validator</td><td>0.14.3</td><td>DTO validation decorators (@IsString, @IsInt, etc.)</td></tr>
+                            <tr><td class="mono">class-transformer</td><td>0.5.1</td><td>Plain-to-class transformation for pipes</td></tr>
+                            <tr><td class="mono">bcrypt</td><td>6.0.0</td><td>Password hashing (10 salt rounds, used in ClientsService)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Development & Build</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Technology</th><th>Version</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">@nestjs/cli</td><td>11.0.0</td><td>Build, generate, and run commands</td></tr>
+                            <tr><td class="mono">Jest</td><td>30.0.0</td><td>Test runner</td></tr>
+                            <tr><td class="mono">ts-jest</td><td>29.2.5</td><td>TypeScript preset for Jest</td></tr>
+                            <tr><td class="mono">ESLint</td><td>9.x</td><td>Linting (with Prettier integration)</td></tr>
+                            <tr><td class="mono">Prettier</td><td>3.4.2</td><td>Code formatting (single quotes, trailing commas)</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- File Structure -->
+            <section class="section" id="file-structure">
+                <div class="section-header">
+                    <h2>File Structure</h2>
+                    <span class="section-badge">Project Layout</span>
+                </div>
+
+                <div class="code-block"><span class="folder">pc-control/</span>
+<span class="folder">  src/</span>                                <span class="cmt">-- Source code root</span>
+<span class="file">    main.ts</span>                           <span class="cmt">-- Bootstrap: creates app, binds port 80</span>
+<span class="file">    app.module.ts</span>                     <span class="cmt">-- Root module: imports all feature modules</span>
+<span class="file">    app.controller.ts</span>                 <span class="cmt">-- GET / health check</span>
+<span class="file">    app.service.ts</span>                    <span class="cmt">-- Returns "Hello World!"</span>
+<span class="folder">    db/</span>                               <span class="cmt">-- Database layer</span>
+<span class="file">      database.module.ts</span>              <span class="cmt">-- Exports DrizzleProvider</span>
+<span class="file">      drizzle.provider.ts</span>             <span class="cmt">-- Factory: Pool + drizzle() instance</span>
+<span class="folder">      schemas/</span>                       <span class="cmt">-- Drizzle table definitions</span>
+<span class="file">        computers.ts</span>
+<span class="file">        computer-groups.ts</span>
+<span class="file">        storage-resources.ts</span>
+<span class="file">        clients.ts</span>
+<span class="file">        tarifs.ts</span>
+<span class="folder">    computers/</span>                        <span class="cmt">-- Computers CRUD module</span>
+<span class="file">      computer.module.ts</span>
+<span class="file">      computers.controller.ts</span>
+<span class="file">      computers.service.ts</span>
+<span class="folder">      dto/</span>
+<span class="file">        create-computer.dto.ts</span>
+<span class="file">        update-computer.dto.ts</span>
+<span class="folder">    computer_groups/</span>                  <span class="cmt">-- Computer Groups CRUD module</span>
+<span class="file">      computer-groups.module.ts</span>
+<span class="file">      computer-groups.controller.ts</span>
+<span class="file">      computer-groups.service.ts</span>
+<span class="folder">      dto/</span>
+<span class="file">        create-computer-group.dto.ts</span>
+<span class="file">        update-computer-group.dto.ts</span>
+<span class="folder">    storage_resources/</span>                <span class="cmt">-- Storage Resources CRUD module</span>
+<span class="file">      storage-resources.module.ts</span>
+<span class="file">      storage-resources.controller.ts</span>
+<span class="file">      storage-resources.service.ts</span>
+<span class="folder">      dto/</span>
+<span class="file">        create-storage-resource.dto.ts</span>
+<span class="file">        update-storage-resource.dto.ts</span>
+<span class="folder">    clients/</span>                          <span class="cmt">-- Clients CRUD (bcrypt passwords)</span>
+<span class="file">      clients.module.ts</span>
+<span class="file">      clients.controller.ts</span>
+<span class="file">      clients.service.ts</span>
+<span class="folder">      dto/</span>
+<span class="file">        create-client.dto.ts</span>
+<span class="file">        update-client.dto.ts</span>
+<span class="folder">    tarif/</span>                            <span class="cmt">-- Tarifs CRUD (not imported in AppModule)</span>
+<span class="file">      tarif.module.ts</span>
+<span class="file">      tarif.controller.ts</span>
+<span class="file">      tarif.servise.ts</span>                <span class="cmt">-- note: typo in filename</span>
+<span class="folder">      dto/</span>
+<span class="file">        create-tarif.dto.ts</span>
+<span class="file">        update-tarif.dto.ts</span>
+<span class="folder">    wol/</span>                              <span class="cmt">-- Wake-on-LAN (PowerShell)</span>
+<span class="file">      wol.module.ts</span>
+<span class="file">      wol.controller.ts</span>
+<span class="file">      wol.service.ts</span>
+<span class="folder">    pxeHttp/</span>                          <span class="cmt">-- PXE HTTP boot server</span>
+<span class="file">      pxe-http.module.ts</span>
+<span class="file">      pxe-http.controller.ts</span>
+<span class="folder">  database/</span>                            <span class="cmt">-- Central schema exports</span>
+<span class="file">    schema.ts</span>
+<span class="folder">  drizzle/</span>                             <span class="cmt">-- SQL migrations</span>
+<span class="file">    0000_amazing_pixie.sql</span>
+<span class="file">    0001_famous_exodus.sql</span>
+<span class="file">    ...</span>                               <span class="cmt">-- 5 migration files total</span>
+<span class="folder">    meta/</span>                             <span class="cmt">-- Drizzle metadata</span>
+<span class="folder">  docker/</span>                              <span class="cmt">-- Docker infrastructure</span>
+<span class="file">    docker-compose.yml</span>                <span class="cmt">-- PostgreSQL + PostGIS container</span>
+<span class="file">    Dockerfile</span>                        <span class="cmt">-- PostGIS 16 + pgvector</span>
+<span class="file">    init.sql</span>
+<span class="folder">  scripts/</span>                             <span class="cmt">-- PowerShell scripts</span>
+<span class="file">    wol2.ps1</span>                          <span class="cmt">-- WoL magic packet sender</span>
+<span class="file">    StartSession.ps1</span>                  <span class="cmt">-- iSCSI session manager</span>
+<span class="folder">  files/</span>                               <span class="cmt">-- PXE boot files (served over HTTP)</span>
+<span class="file">    autoexec.ipxe</span>                     <span class="cmt">-- Initial iPXE script</span>
+<span class="file">    boot.ipxe</span>                         <span class="cmt">-- iSCSI sanboot template</span>
+<span class="file">    ipxe.efi</span>                          <span class="cmt">-- iPXE EFI bootloader binary</span>
+<span class="folder">  docs/</span>                                <span class="cmt">-- Documentation</span>
+<span class="file">    api-documentation.html</span>
+<span class="file">    architecture.html</span>                <span class="cmt">-- this file</span>
+<span class="file">  package.json</span>
+<span class="file">  tsconfig.json</span>
+<span class="file">  drizzle.config.ts</span>
+<span class="file">  nest-cli.json</span>
+<span class="file">  eslint.config.mjs</span>
+<span class="file">  .prettierrc</span>
+<span class="file">  .env</span></div>
+            </section>
+
+            <!-- Module Dependency Graph -->
+            <section class="section" id="module-graph">
+                <div class="section-header">
+                    <h2>Module Dependency Graph</h2>
+                    <span class="section-badge">NestJS DI</span>
+                </div>
+                <p class="section-desc">All feature modules import <code>DatabaseModule</code> to access the Drizzle ORM provider. The <code>ConfigModule</code> is registered globally.</p>
+
+                <div class="diagram-container">
+                    <div class="module-graph">
+                        <div class="module-row">
+                            <div class="module-box root">AppModule<small>Root Module</small></div>
+                        </div>
+                        <div class="graph-arrow">|</div>
+                        <div class="graph-label">imports</div>
+                        <div class="graph-arrow">v</div>
+                        <div class="module-row">
+                            <div class="module-box infra">ConfigModule<small>global: true</small></div>
+                            <div class="module-box infra">DatabaseModule<small>provides DRIZZLE_DB</small></div>
+                        </div>
+                        <div class="graph-arrow">|</div>
+                        <div class="graph-label">imported by feature modules</div>
+                        <div class="graph-arrow">v</div>
+                        <div class="module-row">
+                            <div class="module-box feature">ComputersModule</div>
+                            <div class="module-box feature">ComputerGroupsModule</div>
+                            <div class="module-box feature">StorageResourcesModule</div>
+                        </div>
+                        <div class="module-row" style="margin-top: 12px;">
+                            <div class="module-box feature">ClientsModule</div>
+                            <div class="module-box feature">PxeHttpModule</div>
+                            <div class="module-box special">PcModule (WoL)<small>no DB dependency</small></div>
+                        </div>
+                        <div class="module-row" style="margin-top: 20px;">
+                            <div class="module-box disabled">TarifModule<small>NOT imported in AppModule</small></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Module Legend</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Color</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="module-box root" style="min-width:auto;padding:4px 10px;font-size:11px;">Purple</span></td><td>Root</td><td>Application root module</td></tr>
+                            <tr><td><span class="module-box infra" style="min-width:auto;padding:4px 10px;font-size:11px;">Blue</span></td><td>Infrastructure</td><td>Shared infrastructure modules (config, database)</td></tr>
+                            <tr><td><span class="module-box feature" style="min-width:auto;padding:4px 10px;font-size:11px;">Green</span></td><td>Feature</td><td>CRUD feature modules (import DatabaseModule)</td></tr>
+                            <tr><td><span class="module-box special" style="min-width:auto;padding:4px 10px;font-size:11px;">Yellow</span></td><td>Special</td><td>Standalone modules with unique dependencies</td></tr>
+                            <tr><td><span class="module-box disabled" style="min-width:auto;padding:4px 10px;font-size:11px;">Gray dashed</span></td><td>Disabled</td><td>Module exists but not registered</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- DI Pattern -->
+            <section class="section" id="di-pattern">
+                <div class="section-header">
+                    <h2>Dependency Injection Pattern</h2>
+                </div>
+                <p class="section-desc">Every data-access service follows the same injection pattern using Drizzle ORM with a custom DI token.</p>
+
+                <div class="card">
+                    <h3>1. Provider Factory (drizzle.provider.ts)</h3>
+                    <div class="code-block"><span class="kw">export const</span> DrizzleProvider = {
+  <span class="fn">provide</span>: <span class="str">"DRIZZLE_DB"</span>,
+  <span class="fn">useFactory</span>: <span class="kw">async</span> () <span class="arrow">=></span> {
+    <span class="kw">const</span> pool = <span class="kw">new</span> <span class="type">Pool</span>({ connectionString: process.env.<span class="highlight">DATABASE_URL</span> });
+    <span class="kw">return</span> <span class="fn">drizzle</span>(pool, { schema });
+  },
+};</div>
+                </div>
+
+                <div class="card">
+                    <h3>2. Module Registration (database.module.ts)</h3>
+                    <div class="code-block"><span class="kw">@Module</span>({
+  <span class="fn">providers</span>: [DrizzleProvider],
+  <span class="fn">exports</span>: [DrizzleProvider],  <span class="cmt">// available to importing modules</span>
+})
+<span class="kw">export class</span> <span class="type">DatabaseModule</span> {}</div>
+                </div>
+
+                <div class="card">
+                    <h3>3. Service Injection (e.g., computers.service.ts)</h3>
+                    <div class="code-block"><span class="kw">@Injectable</span>()
+<span class="kw">export class</span> <span class="type">ComputersService</span> {
+  <span class="fn">constructor</span>(
+    <span class="kw">@Inject</span>(<span class="str">'DRIZZLE_DB'</span>) <span class="kw">private readonly</span> db: <span class="type">NodePgDatabase</span>
+  ) {}
+
+  <span class="kw">async</span> <span class="fn">create</span>(dto: <span class="type">CreateComputerDto</span>) {
+    <span class="kw">const</span> [created] = <span class="kw">await</span> <span class="kw">this</span>.db
+      .<span class="fn">insert</span>(computers)
+      .<span class="fn">values</span>(dto)
+      .<span class="fn">returning</span>();
+    <span class="kw">return</span> created;
+  }
+}</div>
+                </div>
+
+                <div class="card">
+                    <h3>4. Feature Module (computer.module.ts)</h3>
+                    <div class="code-block"><span class="kw">@Module</span>({
+  <span class="fn">imports</span>: [<span class="type">DatabaseModule</span>],       <span class="cmt">// gives access to DRIZZLE_DB</span>
+  <span class="fn">controllers</span>: [<span class="type">ComputersController</span>],
+  <span class="fn">providers</span>: [<span class="type">ComputersService</span>],
+})
+<span class="kw">export class</span> <span class="type">ComputersModule</span> {}</div>
+                </div>
+            </section>
+
+            <!-- Database Architecture -->
+            <section class="section" id="db-architecture">
+                <div class="section-header">
+                    <h2>Database Architecture</h2>
+                    <span class="section-badge">PostgreSQL + Drizzle</span>
+                </div>
+                <p class="section-desc">The database runs in Docker (PostGIS 16 + pgvector). Schemas are defined with Drizzle ORM in TypeScript, and migrations are generated via <code>drizzle-kit</code>.</p>
+
+                <div class="card">
+                    <h3>Connection Flow</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step server">.env DATABASE_URL</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">DrizzleProvider</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step db">new Pool()</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step db">drizzle(pool, schema)</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">PostgreSQL:5432</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Schema Definition Pattern</h3>
+                    <div class="code-block"><span class="cmt">// src/db/schemas/computers.ts</span>
+<span class="kw">import</span> { pgTable, serial, varchar, integer, timestamp } <span class="kw">from</span> <span class="str">'drizzle-orm/pg-core'</span>;
+
+<span class="kw">export const</span> computers = <span class="fn">pgTable</span>(<span class="str">'computers'</span>, {
+  <span class="fn">id</span>:        <span class="fn">serial</span>(<span class="str">'id'</span>).<span class="fn">primaryKey</span>(),
+  <span class="fn">name</span>:      <span class="fn">varchar</span>(<span class="str">'name'</span>, { length: <span class="num">50</span> }).<span class="fn">notNull</span>(),
+  <span class="fn">mac</span>:       <span class="fn">varchar</span>(<span class="str">'mac'</span>, { length: <span class="num">17</span> }).<span class="fn">notNull</span>(),
+  <span class="fn">ip</span>:        <span class="fn">varchar</span>(<span class="str">'ip'</span>, { length: <span class="num">15</span> }),
+  <span class="fn">createdAt</span>: <span class="fn">timestamp</span>(<span class="str">'created_at'</span>).<span class="fn">defaultNow</span>(),
+  <span class="fn">bootImgId</span>: <span class="fn">integer</span>(<span class="str">'boot_img_id'</span>).<span class="fn">references</span>(() <span class="arrow">=></span> storageResources.id, { onDelete: <span class="str">'set null'</span> }),
+  <span class="fn">wbDiskId</span>:  <span class="fn">integer</span>(<span class="str">'wb_disk_id'</span>).<span class="fn">references</span>(() <span class="arrow">=></span> storageResources.id, { onDelete: <span class="str">'set null'</span> }),
+  <span class="fn">groupId</span>:   <span class="fn">integer</span>(<span class="str">'group_id'</span>).<span class="fn">references</span>(() <span class="arrow">=></span> computerGroups.id, { onDelete: <span class="str">'set null'</span> }),
+});</div>
+                </div>
+            </section>
+
+            <!-- ER Diagram -->
+            <section class="section" id="er-diagram">
+                <div class="section-header">
+                    <h2>Entity-Relationship Diagram</h2>
+                </div>
+
+                <div class="diagram-container">
+                    <div class="er-container">
+                        <div class="er-table">
+                            <div class="er-table-header">storage_resources</div>
+                            <div class="er-table-body">
+                                <div class="er-field pk"><span class="name">id</span><span class="type">serial PK</span></div>
+                                <div class="er-field"><span class="name">name</span><span class="type">varchar(100)</span></div>
+                                <div class="er-field"><span class="name">resource_type</span><span class="type">varchar(50)</span></div>
+                                <div class="er-field"><span class="name">path</span><span class="type">varchar(255)</span></div>
+                                <div class="er-field"><span class="name">iqn_suffix</span><span class="type">varchar(255)?</span></div>
+                            </div>
+                        </div>
+
+                        <div class="er-table">
+                            <div class="er-table-header">computer_groups</div>
+                            <div class="er-table-body">
+                                <div class="er-field pk"><span class="name">id</span><span class="type">serial PK</span></div>
+                                <div class="er-field"><span class="name">name</span><span class="type">varchar(50)</span></div>
+                                <div class="er-field fk"><span class="name">def_boot_img_id</span><span class="type">FK &#8594; storage_resources</span></div>
+                                <div class="er-field fk"><span class="name">def_wb_disk_id</span><span class="type">FK &#8594; storage_resources</span></div>
+                            </div>
+                        </div>
+
+                        <div class="er-table">
+                            <div class="er-table-header">computers</div>
+                            <div class="er-table-body">
+                                <div class="er-field pk"><span class="name">id</span><span class="type">serial PK</span></div>
+                                <div class="er-field"><span class="name">name</span><span class="type">varchar(50)</span></div>
+                                <div class="er-field"><span class="name">mac</span><span class="type">varchar(17)</span></div>
+                                <div class="er-field"><span class="name">ip</span><span class="type">varchar(15)?</span></div>
+                                <div class="er-field"><span class="name">created_at</span><span class="type">timestamp</span></div>
+                                <div class="er-field fk"><span class="name">boot_img_id</span><span class="type">FK &#8594; storage_resources</span></div>
+                                <div class="er-field fk"><span class="name">wb_disk_id</span><span class="type">FK &#8594; storage_resources</span></div>
+                                <div class="er-field fk"><span class="name">group_id</span><span class="type">FK &#8594; computer_groups</span></div>
+                            </div>
+                        </div>
+
+                        <div class="er-table">
+                            <div class="er-table-header">clients</div>
+                            <div class="er-table-body">
+                                <div class="er-field pk"><span class="name">id</span><span class="type">serial PK</span></div>
+                                <div class="er-field"><span class="name">name</span><span class="type">varchar(100)</span></div>
+                                <div class="er-field"><span class="name">password</span><span class="type">varchar(255)</span></div>
+                                <div class="er-field"><span class="name">lease_time</span><span class="type">integer</span></div>
+                            </div>
+                        </div>
+
+                        <div class="er-table">
+                            <div class="er-table-header">tarifs</div>
+                            <div class="er-table-body">
+                                <div class="er-field pk"><span class="name">id</span><span class="type">serial PK</span></div>
+                                <div class="er-field"><span class="name">name</span><span class="type">varchar(100)</span></div>
+                                <div class="er-field"><span class="name">time</span><span class="type">integer</span></div>
+                                <div class="er-field"><span class="name">price</span><span class="type">integer</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Relationships</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>From</th><th>To</th><th>Cardinality</th><th>On Delete</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">computers.boot_img_id</td><td class="mono">storage_resources.id</td><td>Many-to-One</td><td>SET NULL</td></tr>
+                            <tr><td class="mono">computers.wb_disk_id</td><td class="mono">storage_resources.id</td><td>Many-to-One</td><td>SET NULL</td></tr>
+                            <tr><td class="mono">computers.group_id</td><td class="mono">computer_groups.id</td><td>Many-to-One</td><td>SET NULL</td></tr>
+                            <tr><td class="mono">computer_groups.def_boot_img_id</td><td class="mono">storage_resources.id</td><td>Many-to-One</td><td>SET NULL</td></tr>
+                            <tr><td class="mono">computer_groups.def_wb_disk_id</td><td class="mono">storage_resources.id</td><td>Many-to-One</td><td>SET NULL</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:8px;">The <code>clients</code> and <code>tarifs</code> tables are standalone with no foreign keys.</p>
+                </div>
+            </section>
+
+            <!-- Migrations -->
+            <section class="section" id="migrations">
+                <div class="section-header">
+                    <h2>Migrations</h2>
+                </div>
+                <p class="section-desc">Database migrations are managed by Drizzle Kit and stored as raw SQL files in <code>/drizzle/</code>.</p>
+
+                <div class="card">
+                    <h3>Migration Files</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>#</th><th>File</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td>0</td><td class="mono">0000_amazing_pixie.sql</td><td>Initial schema: computers, computer_groups, storage_resources</td></tr>
+                            <tr><td>1a</td><td class="mono">0001_famous_exodus.sql</td><td>Schema evolution</td></tr>
+                            <tr><td>1b</td><td class="mono">0001_heavy_violations.sql</td><td>Alternate migration branch</td></tr>
+                            <tr><td>2</td><td class="mono">0002_goofy_dreaming_celestial.sql</td><td>Schema changes</td></tr>
+                            <tr><td>3</td><td class="mono">0003_optimal_korvac.sql</td><td>Schema changes</td></tr>
+                            <tr><td>4</td><td class="mono">0004_crazy_red_hulk.sql</td><td>Latest migration</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Drizzle Config</h3>
+                    <div class="code-block"><span class="cmt">// drizzle.config.ts</span>
+<span class="kw">export default</span> {
+  <span class="fn">schema</span>: <span class="str">'./database/schema.ts'</span>,
+  <span class="fn">out</span>: <span class="str">'./drizzle'</span>,
+  <span class="fn">dialect</span>: <span class="str">'postgresql'</span>,
+  <span class="fn">dbCredentials</span>: {
+    <span class="fn">url</span>: process.env.<span class="highlight">DATABASE_URL</span>,
+  },
+};</div>
+                </div>
+            </section>
+
+            <!-- Request Lifecycle -->
+            <section class="section" id="request-flow">
+                <div class="section-header">
+                    <h2>Request Lifecycle</h2>
+                    <span class="section-badge">HTTP Pipeline</span>
+                </div>
+                <p class="section-desc">How an HTTP request flows through the NestJS application.</p>
+
+                <div class="card">
+                    <h3>Standard CRUD Request</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">HTTP Request</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">Express Adapter</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">ValidationPipe (whitelist)</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">Controller Method</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">Service Layer</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step db">Drizzle ORM</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">PostgreSQL</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Pipeline Details</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Stage</th><th>Component</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><span class="tag core">1</span></td><td>Express</td><td>Receives HTTP request, parses body/query/params</td></tr>
+                            <tr><td><span class="tag core">2</span></td><td>Global ValidationPipe</td><td>Validates request body against DTO with <code>whitelist: true</code> -- strips unknown properties</td></tr>
+                            <tr><td><span class="tag core">3</span></td><td>ParseIntPipe</td><td>Converts string route params (e.g., <code>:id</code>) to numbers</td></tr>
+                            <tr><td><span class="tag core">4</span></td><td>Controller</td><td>Routes request to correct handler method via decorators</td></tr>
+                            <tr><td><span class="tag core">5</span></td><td>Service</td><td>Business logic: Drizzle queries, bcrypt hashing, etc.</td></tr>
+                            <tr><td><span class="tag db">6</span></td><td>Drizzle + pg Pool</td><td>Executes SQL against PostgreSQL via connection pool</td></tr>
+                            <tr><td><span class="tag core">7</span></td><td>NestJS</td><td>Serializes response to JSON, sends HTTP response</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Error Handling</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Error Type</th><th>Thrown By</th><th>HTTP Status</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">NotFoundException</td><td>Services (when entity not found)</td><td>404</td></tr>
+                            <tr><td class="mono">BadRequestException</td><td>ValidationPipe (invalid DTO)</td><td>400</td></tr>
+                            <tr><td class="mono">InternalServerErrorException</td><td>WoL Service (PowerShell failure)</td><td>500</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PXE Boot Flow -->
+            <section class="section" id="pxe-flow">
+                <div class="section-header">
+                    <h2>PXE Boot Flow</h2>
+                    <span class="section-badge">Network Boot</span>
+                </div>
+                <p class="section-desc">How diskless clients boot over the network using iPXE and iSCSI.</p>
+
+                <div class="card">
+                    <h3>Step 1: DHCP + iPXE Chainload</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">Client powers on</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">DHCP server</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step client">Downloads ipxe.efi</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step client">Boots iPXE</div>
+                    </div>
+                    <p style="margin-top:12px;">DHCP provides the client with the <code>ipxe.efi</code> bootloader served from the <code>/files/</code> directory.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Step 2: iPXE Initial Script (autoexec.ipxe)</h3>
+                    <div class="code-block"><span class="cmt">#!ipxe</span>
+<span class="fn">dhcp</span>
+<span class="fn">chain</span> <span class="str">http://192.168.2.1/boot?mac=${net0/mac}</span></div>
+                    <p style="margin-top:8px;">iPXE gets DHCP lease, then chains to the server's <code>/boot</code> endpoint passing its MAC address.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Step 3: Server Generates Boot Script</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">GET /boot?mac=XX:XX:XX:XX:XX:XX</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">PxeHttpController</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step db">Lookup by MAC</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">Generate iPXE script</div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <p><strong>If computer found:</strong></p>
+                        <div class="code-block"><span class="cmt">#!ipxe</span>
+<span class="fn">dhcp</span>
+<span class="fn">echo</span> Booting <span class="highlight">{computer.name}</span>
+<span class="kw">set</span> net0/gateway <span class="num">0.0.0.0</span>
+<span class="kw">set</span> keep-san <span class="num">1</span>
+<span class="kw">set</span> root-path iscsi:<span class="num">192.168.2.1</span>::::iqn.2025-12.local.pccontrol:<span class="highlight">{name}</span>
+<span class="fn">sanboot</span> ${root-path}
+<span class="fn">boot</span></div>
+                        <p style="margin-top:8px;"><strong>If unknown MAC:</strong></p>
+                        <div class="code-block"><span class="cmt">#!ipxe</span>
+<span class="fn">echo</span> Unknown computer <span class="highlight">{MAC}</span>
+<span class="fn">sleep</span> <span class="num">10</span>
+<span class="fn">reboot</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Step 4: iSCSI Boot</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">iPXE client</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">iSCSI target (192.168.2.1)</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step client">Boots from iSCSI disk</div>
+                    </div>
+                    <p style="margin-top:8px;">Client uses <code>sanboot</code> to boot from the iSCSI target. The IQN is dynamically constructed as <code>iqn.2025-12.local.pccontrol:{computer_name}</code>.</p>
+                </div>
+            </section>
+
+            <!-- WoL Flow -->
+            <section class="section" id="wol-flow">
+                <div class="section-header">
+                    <h2>Wake-on-LAN Flow</h2>
+                    <span class="section-badge">Power Management</span>
+                </div>
+
+                <div class="card">
+                    <h3>Turn On (Magic Packet)</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">POST /wol/turn-on</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">PcController</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">PcService.turnOn()</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">child_process.spawn()</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">PowerShell wol2.ps1</div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <p><strong>PowerShell command:</strong></p>
+                        <div class="code-block">powershell.exe -ExecutionPolicy Bypass -File scripts/wol2.ps1 -Mac <span class="highlight">{mac}</span></div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <p><strong>What wol2.ps1 does:</strong></p>
+                        <ol style="padding-left:20px;font-size:13px;color:var(--text-muted);margin-top:6px;">
+                            <li>Parses MAC address (strips colons/hyphens/dots)</li>
+                            <li>Creates magic packet: 6 bytes of 0xFF + MAC repeated 16 times</li>
+                            <li>Sends via UDP to broadcast address 255.255.255.255:9</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Turn Off (Remote Shutdown)</h3>
+                    <div class="flow-steps">
+                        <div class="flow-step client">POST /wol/turn-off</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">PcController</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step server">PcService.turnOff()</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">child_process.spawn()</div>
+                        <span class="flow-arrow">&#8594;</span>
+                        <div class="flow-step external">PowerShell shutdown.ps1</div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <p><strong>PowerShell command:</strong></p>
+                        <div class="code-block">powershell.exe -ExecutionPolicy Bypass -File scripts/shutdown.ps1 -Computer <span class="highlight">{ip}</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Bootstrap & Config -->
+            <section class="section" id="bootstrap">
+                <div class="section-header">
+                    <h2>Bootstrap & Configuration</h2>
+                </div>
+
+                <div class="card">
+                    <h3>Application Bootstrap (main.ts)</h3>
+                    <div class="code-block"><span class="kw">async function</span> <span class="fn">bootstrap</span>() {
+  <span class="kw">const</span> app = <span class="kw">await</span> <span class="type">NestFactory</span>.<span class="fn">create</span>(<span class="type">AppModule</span>);
+  app.<span class="fn">useGlobalPipes</span>(<span class="kw">new</span> <span class="type">ValidationPipe</span>({ whitelist: <span class="num">true</span> }));
+  <span class="kw">await</span> app.<span class="fn">listen</span>(<span class="num">80</span>, <span class="str">'0.0.0.0'</span>);
+}
+<span class="fn">bootstrap</span>();</div>
+                </div>
+
+                <div class="card">
+                    <h3>TypeScript Configuration</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Setting</th><th>Value</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">target</td><td>ES2023</td><td>Modern JavaScript output</td></tr>
+                            <tr><td class="mono">module</td><td>nodenext</td><td>Node.js ES modules</td></tr>
+                            <tr><td class="mono">experimentalDecorators</td><td>true</td><td>Required for NestJS decorators</td></tr>
+                            <tr><td class="mono">emitDecoratorMetadata</td><td>true</td><td>Required for DI reflection</td></tr>
+                            <tr><td class="mono">strictNullChecks</td><td>true</td><td>Null safety enabled</td></tr>
+                            <tr><td class="mono">noImplicitAny</td><td>false</td><td>Implicit any allowed</td></tr>
+                            <tr><td class="mono">incremental</td><td>true</td><td>Faster rebuilds</td></tr>
+                            <tr><td class="mono">sourceMap</td><td>true</td><td>Debugging support</td></tr>
+                            <tr><td class="mono">outDir</td><td>./dist</td><td>Compiled output directory</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>NPM Scripts</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Script</th><th>Command</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">build</td><td><code>nest build</code></td><td>Compile TypeScript to dist/</td></tr>
+                            <tr><td class="mono">start</td><td><code>nest start</code></td><td>Run compiled code</td></tr>
+                            <tr><td class="mono">start:dev</td><td><code>nest start --watch</code></td><td>Dev mode with hot reload</td></tr>
+                            <tr><td class="mono">start:debug</td><td><code>nest start --debug --watch</code></td><td>Debug mode with inspector</td></tr>
+                            <tr><td class="mono">start:prod</td><td><code>node dist/main</code></td><td>Production run</td></tr>
+                            <tr><td class="mono">lint</td><td><code>eslint ... --fix</code></td><td>Lint & auto-fix</td></tr>
+                            <tr><td class="mono">test</td><td><code>jest</code></td><td>Run unit tests</td></tr>
+                            <tr><td class="mono">test:cov</td><td><code>jest --coverage</code></td><td>Tests with coverage report</td></tr>
+                            <tr><td class="mono">test:e2e</td><td><code>jest --config ./test/jest-e2e.json</code></td><td>End-to-end tests</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Docker -->
+            <section class="section" id="docker">
+                <div class="section-header">
+                    <h2>Docker Setup</h2>
+                    <span class="section-badge">Infrastructure</span>
+                </div>
+
+                <div class="card">
+                    <h3>docker-compose.yml</h3>
+                    <div class="code-block"><span class="kw">services</span>:
+  <span class="fn">postgres</span>:
+    <span class="kw">build</span>:
+      <span class="fn">context</span>: <span class="str">./docker</span>
+      <span class="fn">dockerfile</span>: <span class="str">Dockerfile</span>
+    <span class="kw">container_name</span>: <span class="str">postgres_main_server</span>
+    <span class="kw">environment</span>:
+      <span class="fn">POSTGRES_USER</span>: <span class="str">mainServAdminKz</span>
+      <span class="fn">POSTGRES_DB</span>: <span class="str">mainServ</span>
+    <span class="kw">ports</span>:
+      - <span class="str">"5432:5432"</span>
+    <span class="kw">volumes</span>:
+      - <span class="str">pgdata:/var/lib/postgresql/data</span>
+    <span class="kw">networks</span>:
+      - <span class="str">proxynet</span></div>
+                </div>
+
+                <div class="card">
+                    <h3>Dockerfile</h3>
+                    <div class="code-block"><span class="kw">FROM</span> <span class="str">postgis/postgis:16-3.4</span>       <span class="cmt"># PostgreSQL 16 + PostGIS</span>
+<span class="cmt"># + pgvector extension installed</span>
+<span class="cmt"># + init.sql in /docker-entrypoint-initdb.d/</span></div>
+                </div>
+
+                <div class="card">
+                    <h3>Environment Variables</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Variable</th><th>Used By</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">DATABASE_URL</td><td>DrizzleProvider, drizzle.config.ts</td><td>PostgreSQL connection string</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Scripts -->
+            <section class="section" id="scripts-section">
+                <div class="section-header">
+                    <h2>Scripts & Tooling</h2>
+                </div>
+
+                <div class="card">
+                    <h3>scripts/wol2.ps1 -- Wake-on-LAN</h3>
+                    <p>PowerShell function <code>Send-WakeOnLan</code> that sends UDP magic packets.</p>
+                    <table class="arch-table">
+                        <thead><tr><th>Parameter</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">-MacAddress</td><td>string</td><td>--</td><td>Target MAC (any format)</td></tr>
+                            <tr><td class="mono">-BroadcastAddress</td><td>string</td><td>255.255.255.255</td><td>UDP broadcast target</td></tr>
+                            <tr><td class="mono">-Port</td><td>int</td><td>9</td><td>UDP port</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:8px;">Packet format: <code>6x 0xFF</code> + <code>16x MAC bytes</code> = magic packet</p>
+                </div>
+
+                <div class="card">
+                    <h3>scripts/StartSession.ps1 -- iSCSI Session Manager</h3>
+                    <p>PowerShell function <code>Start-IscsiClientSession</code> for automated iSCSI target setup.</p>
+                    <table class="arch-table">
+                        <thead><tr><th>Parameter</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">-ComputerName</td><td>PC name (used as target/VHDX name)</td></tr>
+                            <tr><td class="mono">-MACAddress</td><td>For WoL integration</td></tr>
+                            <tr><td class="mono">-VHDXDirectory</td><td>Differencing VHDX storage path</td></tr>
+                            <tr><td class="mono">-BaseVHDXPath</td><td>Gold image path</td></tr>
+                            <tr><td class="mono">-WoLScriptPath</td><td>Path to wol2.ps1</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>files/ -- PXE Boot Files</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">ipxe.efi</td><td>iPXE EFI bootloader binary (served to PXE clients)</td></tr>
+                            <tr><td class="mono">autoexec.ipxe</td><td>Initial iPXE script (DHCP + chain to /boot)</td></tr>
+                            <tr><td class="mono">boot.ipxe</td><td>iSCSI sanboot template script</td></tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:8px;">Files served via PxeHttpController's catch-all <code>GET /*</code> route with path traversal protection.</p>
+                </div>
+            </section>
+
+            <!-- Dependencies -->
+            <section class="section" id="dependencies">
+                <div class="section-header">
+                    <h2>Full Dependency List</h2>
+                </div>
+
+                <div class="card">
+                    <h3>Production Dependencies</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Package</th><th>Version</th><th>Category</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">@nestjs/common</td><td>11.0.1</td><td><span class="tag core">Core</span></td></tr>
+                            <tr><td class="mono">@nestjs/core</td><td>11.0.1</td><td><span class="tag core">Core</span></td></tr>
+                            <tr><td class="mono">@nestjs/platform-express</td><td>11.0.1</td><td><span class="tag core">Core</span></td></tr>
+                            <tr><td class="mono">@nestjs/config</td><td>4.0.2</td><td><span class="tag core">Core</span></td></tr>
+                            <tr><td class="mono">@nestjs/mapped-types</td><td>2.1.0</td><td><span class="tag core">Core</span></td></tr>
+                            <tr><td class="mono">drizzle-orm</td><td>0.44.7</td><td><span class="tag db">Database</span></td></tr>
+                            <tr><td class="mono">pg</td><td>8.16.3</td><td><span class="tag db">Database</span></td></tr>
+                            <tr><td class="mono">class-validator</td><td>0.14.3</td><td><span class="tag security">Validation</span></td></tr>
+                            <tr><td class="mono">class-transformer</td><td>0.5.1</td><td><span class="tag security">Validation</span></td></tr>
+                            <tr><td class="mono">bcrypt</td><td>6.0.0</td><td><span class="tag security">Security</span></td></tr>
+                            <tr><td class="mono">reflect-metadata</td><td>0.2.2</td><td><span class="tag runtime">Runtime</span></td></tr>
+                            <tr><td class="mono">rxjs</td><td>7.8.1</td><td><span class="tag runtime">Runtime</span></td></tr>
+                            <tr><td class="mono">wake_on_lan</td><td>1.0.0</td><td><span class="tag unused">Unused</span> (WoL via PowerShell)</td></tr>
+                            <tr><td class="mono">@prisma/config</td><td>7.0.1</td><td><span class="tag unused">Unused</span> (Drizzle preferred)</td></tr>
+                            <tr><td class="mono">@prisma/internals</td><td>7.0.1</td><td><span class="tag unused">Unused</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <h3>Dev Dependencies</h3>
+                    <table class="arch-table">
+                        <thead><tr><th>Package</th><th>Version</th><th>Category</th></tr></thead>
+                        <tbody>
+                            <tr><td class="mono">@nestjs/cli</td><td>11.0.0</td><td><span class="tag dev">Build</span></td></tr>
+                            <tr><td class="mono">@nestjs/schematics</td><td>11.0.0</td><td><span class="tag dev">Generator</span></td></tr>
+                            <tr><td class="mono">@nestjs/testing</td><td>11.0.1</td><td><span class="tag dev">Testing</span></td></tr>
+                            <tr><td class="mono">typescript</td><td>5.7.3</td><td><span class="tag dev">Language</span></td></tr>
+                            <tr><td class="mono">jest</td><td>30.0.0</td><td><span class="tag dev">Testing</span></td></tr>
+                            <tr><td class="mono">ts-jest</td><td>29.2.5</td><td><span class="tag dev">Testing</span></td></tr>
+                            <tr><td class="mono">supertest</td><td>7.0.0</td><td><span class="tag dev">Testing</span></td></tr>
+                            <tr><td class="mono">drizzle-kit</td><td>0.31.7</td><td><span class="tag dev">Migrations</span></td></tr>
+                            <tr><td class="mono">eslint</td><td>9.x</td><td><span class="tag dev">Linting</span></td></tr>
+                            <tr><td class="mono">prettier</td><td>3.4.2</td><td><span class="tag dev">Formatting</span></td></tr>
+                            <tr><td class="mono">ts-loader</td><td>9.5.2</td><td><span class="tag dev">Build</span></td></tr>
+                            <tr><td class="mono">ts-node</td><td>10.9.2</td><td><span class="tag dev">Runtime</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Smooth scroll for sidebar links
+        document.querySelectorAll('.nav-link[href^="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+                // Active state
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        // Highlight active section on scroll
+        const sections = document.querySelectorAll('.section, .hero');
+        const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const top = section.offsetTop - 100;
+                if (window.scrollY >= top) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

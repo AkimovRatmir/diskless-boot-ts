@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PC Control - API Documentation</title>
+    <style>
+        :root {
+            --bg: #0f1117;
+            --bg-card: #1a1d27;
+            --bg-code: #12141c;
+            --border: #2a2d3a;
+            --text: #e1e4ed;
+            --text-muted: #8b8fa3;
+            --accent: #6c5ce7;
+            --accent-light: #a29bfe;
+            --get: #00b894;
+            --post: #0984e3;
+            --patch: #fdcb6e;
+            --delete: #d63031;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --info: #74b9ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            z-index: 100;
+            padding: 24px 0;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 16px;
+        }
+
+        .sidebar-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--accent-light);
+        }
+
+        .sidebar-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .nav-group {
+            margin-bottom: 8px;
+        }
+
+        .nav-group-title {
+            padding: 8px 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 20px;
+            font-size: 13px;
+            color: var(--text);
+            text-decoration: none;
+            transition: background 0.15s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background: rgba(108, 92, 231, 0.1);
+        }
+
+        .method-badge-sm {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 5px;
+            border-radius: 3px;
+            min-width: 36px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .method-badge-sm.get { background: rgba(0, 184, 148, 0.2); color: var(--get); }
+        .method-badge-sm.post { background: rgba(9, 132, 227, 0.2); color: var(--post); }
+        .method-badge-sm.patch { background: rgba(253, 203, 110, 0.2); color: var(--patch); }
+        .method-badge-sm.delete { background: rgba(214, 48, 49, 0.2); color: var(--delete); }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 60px;
+            max-width: 1100px;
+        }
+
+        .hero {
+            margin-bottom: 48px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .hero h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: var(--text-muted);
+            max-width: 600px;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .meta-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .meta-item .label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .meta-item .value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Section */
+        .api-section {
+            margin-bottom: 56px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-header h2 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .section-badge {
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            background: rgba(108, 92, 231, 0.15);
+            color: var(--accent-light);
+            font-weight: 600;
+        }
+
+        .section-description {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* Endpoint Card */
+        .endpoint {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: border-color 0.15s;
+        }
+
+        .endpoint:hover {
+            border-color: var(--accent);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .endpoint-header:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .method-badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 4px;
+            min-width: 56px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .method-badge.get { background: rgba(0, 184, 148, 0.15); color: var(--get); border: 1px solid rgba(0, 184, 148, 0.3); }
+        .method-badge.post { background: rgba(9, 132, 227, 0.15); color: var(--post); border: 1px solid rgba(9, 132, 227, 0.3); }
+        .method-badge.patch { background: rgba(253, 203, 110, 0.15); color: var(--patch); border: 1px solid rgba(253, 203, 110, 0.3); }
+        .method-badge.delete { background: rgba(214, 48, 49, 0.15); color: var(--delete); border: 1px solid rgba(214, 48, 49, 0.3); }
+
+        .endpoint-path {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .endpoint-desc {
+            margin-left: auto;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .endpoint-toggle {
+            margin-left: 8px;
+            color: var(--text-muted);
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+
+        .endpoint.open .endpoint-toggle {
+            transform: rotate(180deg);
+        }
+
+        .endpoint-body {
+            display: none;
+            padding: 0 20px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .endpoint.open .endpoint-body {
+            display: block;
+        }
+
+        .detail-group {
+            margin-top: 16px;
+        }
+
+        .detail-group h4 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        /* Tables */
+        .params-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .params-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: var(--bg-code);
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .params-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .params-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .param-name {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: var(--accent-light);
+            font-weight: 500;
+        }
+
+        .param-type {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: var(--info);
+            font-size: 12px;
+        }
+
+        .required-badge {
+            font-size: 10px;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+
+        .required-badge.yes {
+            background: rgba(214, 48, 49, 0.15);
+            color: #ff7675;
+        }
+
+        .required-badge.no {
+            background: rgba(0, 184, 148, 0.1);
+            color: var(--text-muted);
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 12px;
+            line-height: 1.7;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        .code-block .key { color: #a29bfe; }
+        .code-block .string { color: #00b894; }
+        .code-block .number { color: #fdcb6e; }
+        .code-block .comment { color: #636e72; }
+
+        /* Schema Section */
+        .schema-section {
+            margin-bottom: 56px;
+        }
+
+        .schema-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .schema-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .schema-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .schema-body {
+            padding: 0;
+        }
+
+        .schema-body .params-table th:first-child,
+        .schema-body .params-table td:first-child {
+            padding-left: 20px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+            .main {
+                margin-left: 0;
+                padding: 24px 20px;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .response-label {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+
+        .response-label.success {
+            background: rgba(0, 184, 148, 0.15);
+            color: var(--get);
+        }
+
+        .response-label.error {
+            background: rgba(214, 48, 49, 0.15);
+            color: var(--delete);
+        }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>PC Control API</h1>
+                <p>v0.0.1 &middot; NestJS 11</p>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Overview</div>
+                <a class="nav-link" href="#overview">Getting Started</a>
+                <a class="nav-link" href="#schemas">Database Schemas</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">App</div>
+                <a class="nav-link" href="#app-get-root"><span class="method-badge-sm get">GET</span> /</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Computers</div>
+                <a class="nav-link" href="#computers-create"><span class="method-badge-sm post">POST</span> /computers</a>
+                <a class="nav-link" href="#computers-findall"><span class="method-badge-sm get">GET</span> /computers</a>
+                <a class="nav-link" href="#computers-findone"><span class="method-badge-sm get">GET</span> /computers/:id</a>
+                <a class="nav-link" href="#computers-update"><span class="method-badge-sm patch">PATCH</span> /computers/:id</a>
+                <a class="nav-link" href="#computers-delete"><span class="method-badge-sm delete">DEL</span> /computers/:id</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Computer Groups</div>
+                <a class="nav-link" href="#groups-create"><span class="method-badge-sm post">POST</span> /computer-groups</a>
+                <a class="nav-link" href="#groups-findall"><span class="method-badge-sm get">GET</span> /computer-groups</a>
+                <a class="nav-link" href="#groups-findone"><span class="method-badge-sm get">GET</span> /computer-groups/:id</a>
+                <a class="nav-link" href="#groups-update"><span class="method-badge-sm patch">PATCH</span> /computer-groups/:id</a>
+                <a class="nav-link" href="#groups-delete"><span class="method-badge-sm delete">DEL</span> /computer-groups/:id</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Storage Resources</div>
+                <a class="nav-link" href="#storage-create"><span class="method-badge-sm post">POST</span> /storage-resources</a>
+                <a class="nav-link" href="#storage-findall"><span class="method-badge-sm get">GET</span> /storage-resources</a>
+                <a class="nav-link" href="#storage-findone"><span class="method-badge-sm get">GET</span> /storage-resources/:id</a>
+                <a class="nav-link" href="#storage-update"><span class="method-badge-sm patch">PATCH</span> /storage-resources/:id</a>
+                <a class="nav-link" href="#storage-delete"><span class="method-badge-sm delete">DEL</span> /storage-resources/:id</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Clients</div>
+                <a class="nav-link" href="#clients-create"><span class="method-badge-sm post">POST</span> /clients</a>
+                <a class="nav-link" href="#clients-findall"><span class="method-badge-sm get">GET</span> /clients/all</a>
+                <a class="nav-link" href="#clients-findone"><span class="method-badge-sm get">GET</span> /clients/:id</a>
+                <a class="nav-link" href="#clients-lease"><span class="method-badge-sm get">GET</span> /clients/lease/:id</a>
+                <a class="nav-link" href="#clients-update"><span class="method-badge-sm patch">PATCH</span> /clients/:id</a>
+                <a class="nav-link" href="#clients-delete"><span class="method-badge-sm delete">DEL</span> /clients/:id</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Tarifs</div>
+                <a class="nav-link" href="#tarifs-create"><span class="method-badge-sm post">POST</span> /tarifs/create</a>
+                <a class="nav-link" href="#tarifs-findall"><span class="method-badge-sm get">GET</span> /tarifs/all</a>
+                <a class="nav-link" href="#tarifs-findone"><span class="method-badge-sm get">GET</span> /tarifs/:id</a>
+                <a class="nav-link" href="#tarifs-update"><span class="method-badge-sm patch">PATCH</span> /tarifs/:id</a>
+                <a class="nav-link" href="#tarifs-delete"><span class="method-badge-sm delete">DEL</span> /tarifs/delete/:id</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">Wake-on-LAN</div>
+                <a class="nav-link" href="#wol-turnon"><span class="method-badge-sm post">POST</span> /wol/turn-on</a>
+                <a class="nav-link" href="#wol-turnoff"><span class="method-badge-sm post">POST</span> /wol/turn-off</a>
+            </div>
+
+            <div class="nav-group">
+                <div class="nav-group-title">PXE Boot</div>
+                <a class="nav-link" href="#pxe-boot"><span class="method-badge-sm get">GET</span> /boot</a>
+                <a class="nav-link" href="#pxe-files"><span class="method-badge-sm get">GET</span> /* (files)</a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Hero -->
+            <section class="hero" id="overview">
+                <h1>PC Control API</h1>
+                <p>Complete REST API documentation for the PC Control system -- manage computers, groups, storage resources, clients, tarifs, and PXE network booting.</p>
+
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <div class="label">Base URL</div>
+                        <div class="value">http://host:80</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Framework</div>
+                        <div class="value">NestJS 11</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Database</div>
+                        <div class="value">PostgreSQL + Drizzle</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Validation</div>
+                        <div class="value">class-validator (whitelist)</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Auth</div>
+                        <div class="value">None (open)</div>
+                    </div>
+                    <div class="meta-item">
+                        <div class="label">Version</div>
+                        <div class="value">0.0.1</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== APP ==================== -->
+            <section class="api-section" id="section-app">
+                <div class="section-header">
+                    <h2>App</h2>
+                    <span class="section-badge">Root</span>
+                </div>
+                <p class="section-description">Root application endpoint.</p>
+
+                <div class="endpoint" id="app-get-root">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/</span>
+                        <span class="endpoint-desc">Health check</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Returns a simple greeting to verify the server is running.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block"><span class="string">"Hello World!"</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== COMPUTERS ==================== -->
+            <section class="api-section" id="section-computers">
+                <div class="section-header">
+                    <h2>Computers</h2>
+                    <span class="section-badge">/computers</span>
+                </div>
+                <p class="section-description">Manage computers in the system. Each computer has a name, MAC address, optional IP, and can be assigned to a group, boot image, and writeback disk.</p>
+
+                <!-- POST /computers -->
+                <div class="endpoint" id="computers-create">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/computers</span>
+                        <span class="endpoint-desc">Create a computer</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">mac</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">ip</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsIP()</td></tr>
+                                    <tr><td class="param-name">groupId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                    <tr><td class="param-name">bootImgId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                    <tr><td class="param-name">wbDiskId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"name"</span>: <span class="string">"PC-Lab-01"</span>,
+  <span class="key">"mac"</span>: <span class="string">"AA:BB:CC:DD:EE:FF"</span>,
+  <span class="key">"ip"</span>: <span class="string">"192.168.1.100"</span>,
+  <span class="key">"groupId"</span>: <span class="number">1</span>,
+  <span class="key">"bootImgId"</span>: <span class="number">2</span>,
+  <span class="key">"wbDiskId"</span>: <span class="number">3</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (201)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"PC-Lab-01"</span>,
+  <span class="key">"mac"</span>: <span class="string">"AA:BB:CC:DD:EE:FF"</span>,
+  <span class="key">"ip"</span>: <span class="string">"192.168.1.100"</span>,
+  <span class="key">"groupId"</span>: <span class="number">1</span>,
+  <span class="key">"bootImgId"</span>: <span class="number">2</span>,
+  <span class="key">"wbDiskId"</span>: <span class="number">3</span>,
+  <span class="key">"createdAt"</span>: <span class="string">"2026-03-16T12:00:00.000Z"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /computers -->
+                <div class="endpoint" id="computers-findall">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/computers</span>
+                        <span class="endpoint-desc">List all computers</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">[
+  {
+    <span class="key">"id"</span>: <span class="number">1</span>,
+    <span class="key">"name"</span>: <span class="string">"PC-Lab-01"</span>,
+    <span class="key">"mac"</span>: <span class="string">"AA:BB:CC:DD:EE:FF"</span>,
+    <span class="key">"ip"</span>: <span class="string">"192.168.1.100"</span>,
+    <span class="key">"groupId"</span>: <span class="number">1</span>,
+    <span class="key">"bootImgId"</span>: <span class="number">2</span>,
+    <span class="key">"wbDiskId"</span>: <span class="number">3</span>,
+    <span class="key">"createdAt"</span>: <span class="string">"2026-03-16T12:00:00.000Z"</span>
+  }
+]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /computers/:id -->
+                <div class="endpoint" id="computers-findone">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/computers/:id</span>
+                        <span class="endpoint-desc">Get a computer by ID</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Computer ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"PC-Lab-01"</span>,
+  <span class="key">"mac"</span>: <span class="string">"AA:BB:CC:DD:EE:FF"</span>,
+  <span class="key">"ip"</span>: <span class="string">"192.168.1.100"</span>,
+  <span class="key">"groupId"</span>: <span class="number">1</span>,
+  <span class="key">"bootImgId"</span>: <span class="number">2</span>,
+  <span class="key">"wbDiskId"</span>: <span class="number">3</span>,
+  <span class="key">"createdAt"</span>: <span class="string">"2026-03-16T12:00:00.000Z"</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Computer with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PATCH /computers/:id -->
+                <div class="endpoint" id="computers-update">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge patch">PATCH</span>
+                        <span class="endpoint-path">/computers/:id</span>
+                        <span class="endpoint-desc">Update a computer</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Computer ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Request Body (all fields optional)</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">mac</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">ip</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsIP()</td></tr>
+                                    <tr><td class="param-name">groupId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                    <tr><td class="param-name">bootImgId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                    <tr><td class="param-name">wbDiskId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>--</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Computer with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DELETE /computers/:id -->
+                <div class="endpoint" id="computers-delete">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/computers/:id</span>
+                        <span class="endpoint-desc">Delete a computer</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Computer ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <p>Returns the deleted computer object.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Computer with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== COMPUTER GROUPS ==================== -->
+            <section class="api-section" id="section-groups">
+                <div class="section-header">
+                    <h2>Computer Groups</h2>
+                    <span class="section-badge">/computer-groups</span>
+                </div>
+                <p class="section-description">Manage logical groups of computers. Groups can define default boot images and writeback disks applied to all member computers.</p>
+
+                <!-- POST /computer-groups -->
+                <div class="endpoint" id="groups-create">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/computer-groups</span>
+                        <span class="endpoint-desc">Create a group</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">defBootImgId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                    <tr><td class="param-name">defWbDiskId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"name"</span>: <span class="string">"Lab A"</span>,
+  <span class="key">"defBootImgId"</span>: <span class="number">1</span>,
+  <span class="key">"defWbDiskId"</span>: <span class="number">2</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (201)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"Lab A"</span>,
+  <span class="key">"defBootImgId"</span>: <span class="number">1</span>,
+  <span class="key">"defWbDiskId"</span>: <span class="number">2</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /computer-groups -->
+                <div class="endpoint" id="groups-findall">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/computer-groups</span>
+                        <span class="endpoint-desc">List all groups</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">[
+  {
+    <span class="key">"id"</span>: <span class="number">1</span>,
+    <span class="key">"name"</span>: <span class="string">"Lab A"</span>,
+    <span class="key">"defBootImgId"</span>: <span class="number">1</span>,
+    <span class="key">"defWbDiskId"</span>: <span class="number">2</span>
+  }
+]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /computer-groups/:id -->
+                <div class="endpoint" id="groups-findone">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/computer-groups/:id</span>
+                        <span class="endpoint-desc">Get a group by ID</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Group ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Computer group with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PATCH /computer-groups/:id -->
+                <div class="endpoint" id="groups-update">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge patch">PATCH</span>
+                        <span class="endpoint-path">/computer-groups/:id</span>
+                        <span class="endpoint-desc">Update a group</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Group ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Request Body (all fields optional)</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">defBootImgId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                    <tr><td class="param-name">defWbDiskId</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DELETE /computer-groups/:id -->
+                <div class="endpoint" id="groups-delete">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/computer-groups/:id</span>
+                        <span class="endpoint-desc">Delete a group</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Group ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Note</h4>
+                            <p>Deleting a group will set <code>groupId</code> to NULL on all associated computers (ON DELETE SET NULL).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== STORAGE RESOURCES ==================== -->
+            <section class="api-section" id="section-storage">
+                <div class="section-header">
+                    <h2>Storage Resources</h2>
+                    <span class="section-badge">/storage-resources</span>
+                </div>
+                <p class="section-description">Manage storage resources used for PXE boot images and writeback disks. Each resource has a type (BOOT_IMAGE or WRITEBACK), a file path, and an optional iSCSI IQN suffix.</p>
+
+                <!-- POST /storage-resources -->
+                <div class="endpoint" id="storage-create">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/storage-resources</span>
+                        <span class="endpoint-desc">Create a storage resource</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">resourceType</td><td class="param-type">"WRITEBACK" | "BOOT_IMAGE"</td><td><span class="required-badge yes">required</span></td><td>@IsIn(['WRITEBACK', 'BOOT_IMAGE'])</td></tr>
+                                    <tr><td class="param-name">path</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">iqnSuffix</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"name"</span>: <span class="string">"Windows 11 Boot Image"</span>,
+  <span class="key">"resourceType"</span>: <span class="string">"BOOT_IMAGE"</span>,
+  <span class="key">"path"</span>: <span class="string">"/storage/images/win11.vhd"</span>,
+  <span class="key">"iqnSuffix"</span>: <span class="string">"win11-boot"</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (201)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"Windows 11 Boot Image"</span>,
+  <span class="key">"resourceType"</span>: <span class="string">"BOOT_IMAGE"</span>,
+  <span class="key">"path"</span>: <span class="string">"/storage/images/win11.vhd"</span>,
+  <span class="key">"iqnSuffix"</span>: <span class="string">"win11-boot"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /storage-resources -->
+                <div class="endpoint" id="storage-findall">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/storage-resources</span>
+                        <span class="endpoint-desc">List all storage resources</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">[
+  {
+    <span class="key">"id"</span>: <span class="number">1</span>,
+    <span class="key">"name"</span>: <span class="string">"Windows 11 Boot Image"</span>,
+    <span class="key">"resourceType"</span>: <span class="string">"BOOT_IMAGE"</span>,
+    <span class="key">"path"</span>: <span class="string">"/storage/images/win11.vhd"</span>,
+    <span class="key">"iqnSuffix"</span>: <span class="string">"win11-boot"</span>
+  }
+]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /storage-resources/:id -->
+                <div class="endpoint" id="storage-findone">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/storage-resources/:id</span>
+                        <span class="endpoint-desc">Get a storage resource by ID</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Storage Resource ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Storage resource with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PATCH /storage-resources/:id -->
+                <div class="endpoint" id="storage-update">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge patch">PATCH</span>
+                        <span class="endpoint-path">/storage-resources/:id</span>
+                        <span class="endpoint-desc">Update a storage resource</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body (all fields optional)</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">resourceType</td><td class="param-type">"WRITEBACK" | "BOOT_IMAGE"</td><td><span class="required-badge no">optional</span></td><td>@IsIn(['WRITEBACK', 'BOOT_IMAGE'])</td></tr>
+                                    <tr><td class="param-name">path</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">iqnSuffix</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DELETE /storage-resources/:id -->
+                <div class="endpoint" id="storage-delete">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/storage-resources/:id</span>
+                        <span class="endpoint-desc">Delete a storage resource</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Storage Resource ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Note</h4>
+                            <p>Deleting a storage resource will set <code>bootImgId</code> / <code>wbDiskId</code> to NULL on all associated computers and groups (ON DELETE SET NULL).</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== CLIENTS ==================== -->
+            <section class="api-section" id="section-clients">
+                <div class="section-header">
+                    <h2>Clients</h2>
+                    <span class="section-badge">/clients</span>
+                </div>
+                <p class="section-description">Manage client accounts. Passwords are hashed with bcrypt (10 salt rounds) before storage.</p>
+
+                <!-- POST /clients -->
+                <div class="endpoint" id="clients-create">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/clients</span>
+                        <span class="endpoint-desc">Create a client</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">password</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString() (hashed with bcrypt)</td></tr>
+                                    <tr><td class="param-name">leaseTime</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"name"</span>: <span class="string">"student-01"</span>,
+  <span class="key">"password"</span>: <span class="string">"securepassword123"</span>,
+  <span class="key">"leaseTime"</span>: <span class="number">3600</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (201)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"student-01"</span>,
+  <span class="key">"password"</span>: <span class="string">"$2b$10$..."</span>,  <span class="comment">// bcrypt hash</span>
+  <span class="key">"leaseTime"</span>: <span class="number">3600</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /clients/all -->
+                <div class="endpoint" id="clients-findall">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/clients/all</span>
+                        <span class="endpoint-desc">List all clients</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">[
+  {
+    <span class="key">"id"</span>: <span class="number">1</span>,
+    <span class="key">"name"</span>: <span class="string">"student-01"</span>,
+    <span class="key">"password"</span>: <span class="string">"$2b$10$..."</span>,
+    <span class="key">"leaseTime"</span>: <span class="number">3600</span>
+  }
+]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /clients/:id -->
+                <div class="endpoint" id="clients-findone">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/clients/:id</span>
+                        <span class="endpoint-desc">Get a client by ID</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Client ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Client with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /clients/lease/:id -->
+                <div class="endpoint" id="clients-lease">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/clients/lease/:id</span>
+                        <span class="endpoint-desc">Get client lease time</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Client ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Returns only the lease time value for the specified client.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block"><span class="number">3600</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PATCH /clients/:id -->
+                <div class="endpoint" id="clients-update">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge patch">PATCH</span>
+                        <span class="endpoint-path">/clients/:id</span>
+                        <span class="endpoint-desc">Update a client</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body (all fields optional)</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">password</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString() (re-hashed with bcrypt if provided)</td></tr>
+                                    <tr><td class="param-name">leaseTime</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DELETE /clients/:id -->
+                <div class="endpoint" id="clients-delete">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/clients/:id</span>
+                        <span class="endpoint-desc">Delete a client</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Client ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== TARIFS ==================== -->
+            <section class="api-section" id="section-tarifs">
+                <div class="section-header">
+                    <h2>Tarifs</h2>
+                    <span class="section-badge">/tarifs</span>
+                </div>
+                <p class="section-description">Manage pricing tarifs. Each tarif defines a name, time duration, and price.</p>
+
+                <!-- POST /tarifs/create -->
+                <div class="endpoint" id="tarifs-create">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/tarifs/create</span>
+                        <span class="endpoint-desc">Create a tarif</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">time</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>@IsInt()</td></tr>
+                                    <tr><td class="param-name">price</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"name"</span>: <span class="string">"1 Hour Pass"</span>,
+  <span class="key">"time"</span>: <span class="number">60</span>,
+  <span class="key">"price"</span>: <span class="number">500</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (201)</h4>
+                            <div class="code-block">{
+  <span class="key">"id"</span>: <span class="number">1</span>,
+  <span class="key">"name"</span>: <span class="string">"1 Hour Pass"</span>,
+  <span class="key">"time"</span>: <span class="number">60</span>,
+  <span class="key">"price"</span>: <span class="number">500</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /tarifs/all -->
+                <div class="endpoint" id="tarifs-findall">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/tarifs/all</span>
+                        <span class="endpoint-desc">List all tarifs</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">[
+  {
+    <span class="key">"id"</span>: <span class="number">1</span>,
+    <span class="key">"name"</span>: <span class="string">"1 Hour Pass"</span>,
+    <span class="key">"time"</span>: <span class="number">60</span>,
+    <span class="key">"price"</span>: <span class="number">500</span>
+  }
+]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /tarifs/:id -->
+                <div class="endpoint" id="tarifs-findone">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/tarifs/:id</span>
+                        <span class="endpoint-desc">Get a tarif by ID</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Tarif ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">404</span>,
+  <span class="key">"message"</span>: <span class="string">"Tarif with id 999 not found"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PATCH /tarifs/:id -->
+                <div class="endpoint" id="tarifs-update">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge patch">PATCH</span>
+                        <span class="endpoint-path">/tarifs/:id</span>
+                        <span class="endpoint-desc">Update a tarif</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Request Body (all fields optional)</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Validation</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">name</td><td class="param-type">string</td><td><span class="required-badge no">optional</span></td><td>@IsString()</td></tr>
+                                    <tr><td class="param-name">time</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                    <tr><td class="param-name">price</td><td class="param-type">number</td><td><span class="required-badge no">optional</span></td><td>@IsInt()</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DELETE /tarifs/delete/:id -->
+                <div class="endpoint" id="tarifs-delete">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge delete">DELETE</span>
+                        <span class="endpoint-path">/tarifs/delete/:id</span>
+                        <span class="endpoint-desc">Delete a tarif</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Path Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">id</td><td class="param-type">number</td><td><span class="required-badge yes">required</span></td><td>Tarif ID</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <div class="code-block">{
+  <span class="key">"message"</span>: <span class="string">"Tarif with id 1 deleted"</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== WOL ==================== -->
+            <section class="api-section" id="section-wol">
+                <div class="section-header">
+                    <h2>Wake-on-LAN</h2>
+                    <span class="section-badge">/wol</span>
+                </div>
+                <p class="section-description">Remote power management via Wake-on-LAN magic packets and remote shutdown. Uses PowerShell scripts under the hood.</p>
+
+                <!-- POST /wol/turn-on -->
+                <div class="endpoint" id="wol-turnon">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/wol/turn-on</span>
+                        <span class="endpoint-desc">Wake up a computer</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Sends a Wake-on-LAN magic packet to the specified MAC address using a PowerShell script.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">mac</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>MAC address of the target computer</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"mac"</span>: <span class="string">"AA:BB:CC:DD:EE:FF"</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <span class="response-label success">Success</span>
+                            <div class="code-block">{
+  <span class="key">"status"</span>: <span class="string">"ok"</span>,
+  <span class="key">"message"</span>: <span class="string">"WoL packet sent to AA:BB:CC:DD:EE:FF"</span>,
+  <span class="key">"scriptOutput"</span>: <span class="string">"..."</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (500)</h4>
+                            <span class="response-label error">Error</span>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">500</span>,
+  <span class="key">"message"</span>: <span class="string">"Failed to send WoL packet: ..."</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- POST /wol/turn-off -->
+                <div class="endpoint" id="wol-turnoff">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge post">POST</span>
+                        <span class="endpoint-path">/wol/turn-off</span>
+                        <span class="endpoint-desc">Shutdown a computer</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Remotely shuts down a computer at the specified IP address using a PowerShell script.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Request Body</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">ip</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>IP address of the target computer</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Example Request</h4>
+                            <div class="code-block">{
+  <span class="key">"ip"</span>: <span class="string">"192.168.1.100"</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200)</h4>
+                            <span class="response-label success">Success</span>
+                            <div class="code-block">{
+  <span class="key">"status"</span>: <span class="string">"ok"</span>,
+  <span class="key">"message"</span>: <span class="string">"Shutdown command sent to 192.168.1.100"</span>,
+  <span class="key">"scriptOutput"</span>: <span class="string">"..."</span>
+}</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (500)</h4>
+                            <span class="response-label error">Error</span>
+                            <div class="code-block">{
+  <span class="key">"statusCode"</span>: <span class="number">500</span>,
+  <span class="key">"message"</span>: <span class="string">"Failed to shutdown: ..."</span>
+}</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== PXE ==================== -->
+            <section class="api-section" id="section-pxe">
+                <div class="section-header">
+                    <h2>PXE Boot</h2>
+                    <span class="section-badge">HTTP Boot</span>
+                </div>
+                <p class="section-description">PXE network boot endpoints. Generates iPXE boot scripts dynamically based on computer MAC address and serves boot files over HTTP.</p>
+
+                <!-- GET /boot -->
+                <div class="endpoint" id="pxe-boot">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/boot</span>
+                        <span class="endpoint-desc">Get iPXE boot script</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Generates a dynamic iPXE boot script for a computer identified by its MAC address. Looks up the computer in the database to find its assigned boot image and writeback disk (falling back to group defaults), then returns an iPXE script with the appropriate iSCSI targets.</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Query Parameters</h4>
+                            <table class="params-table">
+                                <thead><tr><th>Param</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+                                <tbody>
+                                    <tr><td class="param-name">mac</td><td class="param-type">string</td><td><span class="required-badge yes">required</span></td><td>MAC address (format: AA:BB:CC:DD:EE:FF)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response (200) - Content-Type: text/plain</h4>
+                            <div class="code-block"><span class="comment">#!ipxe</span>
+<span class="comment"># Dynamic boot script generated for the computer</span>
+set server-ip &lt;server-ip&gt;
+set iscsi-iqn &lt;iqn-base&gt;
+sanhook --drive 0x81 iscsi:&lt;target&gt;
+sanboot --no-describe iscsi:&lt;target&gt;</div>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Error Response (404)</h4>
+                            <div class="code-block"><span class="string">"Computer not found"</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GET /* -->
+                <div class="endpoint" id="pxe-files">
+                    <div class="endpoint-header" onclick="this.parentElement.classList.toggle('open')">
+                        <span class="method-badge get">GET</span>
+                        <span class="endpoint-path">/*</span>
+                        <span class="endpoint-desc">Serve boot files (catch-all)</span>
+                        <span class="endpoint-toggle">&#9660;</span>
+                    </div>
+                    <div class="endpoint-body">
+                        <div class="detail-group">
+                            <h4>Description</h4>
+                            <p>Catch-all route that serves static files from the <code>/files/</code> directory. Used by PXE clients to download boot files (iPXE binaries, kernels, etc.).</p>
+                        </div>
+                        <div class="detail-group">
+                            <h4>Response</h4>
+                            <p><strong>200:</strong> Raw file content with appropriate content type<br>
+                            <strong>404:</strong> File not found</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== DATABASE SCHEMAS ==================== -->
+            <section class="schema-section" id="schemas">
+                <div class="section-header">
+                    <h2>Database Schemas</h2>
+                </div>
+                <p class="section-description">PostgreSQL database schemas managed with Drizzle ORM.</p>
+
+                <!-- Computers -->
+                <div class="schema-card">
+                    <div class="schema-header">
+                        <h3>computers</h3>
+                        <span class="section-badge">Table</span>
+                    </div>
+                    <div class="schema-body">
+                        <table class="params-table">
+                            <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th></tr></thead>
+                            <tbody>
+                                <tr><td class="param-name">id</td><td class="param-type">serial</td><td>PRIMARY KEY</td><td>--</td></tr>
+                                <tr><td class="param-name">name</td><td class="param-type">varchar(50)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">mac</td><td class="param-type">varchar(17)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">ip</td><td class="param-type">varchar(15)</td><td>--</td><td>--</td></tr>
+                                <tr><td class="param-name">createdAt</td><td class="param-type">timestamp</td><td>DEFAULT NOW()</td><td>--</td></tr>
+                                <tr><td class="param-name">bootImgId</td><td class="param-type">integer</td><td>ON DELETE SET NULL</td><td>storage_resources.id</td></tr>
+                                <tr><td class="param-name">wbDiskId</td><td class="param-type">integer</td><td>ON DELETE SET NULL</td><td>storage_resources.id</td></tr>
+                                <tr><td class="param-name">groupId</td><td class="param-type">integer</td><td>ON DELETE SET NULL</td><td>computer_groups.id</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Computer Groups -->
+                <div class="schema-card">
+                    <div class="schema-header">
+                        <h3>computer_groups</h3>
+                        <span class="section-badge">Table</span>
+                    </div>
+                    <div class="schema-body">
+                        <table class="params-table">
+                            <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th></tr></thead>
+                            <tbody>
+                                <tr><td class="param-name">id</td><td class="param-type">serial</td><td>PRIMARY KEY</td><td>--</td></tr>
+                                <tr><td class="param-name">name</td><td class="param-type">varchar(50)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">defBootImgId</td><td class="param-type">integer</td><td>ON DELETE SET NULL</td><td>storage_resources.id</td></tr>
+                                <tr><td class="param-name">defWbDiskId</td><td class="param-type">integer</td><td>ON DELETE SET NULL</td><td>storage_resources.id</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Storage Resources -->
+                <div class="schema-card">
+                    <div class="schema-header">
+                        <h3>storage_resources</h3>
+                        <span class="section-badge">Table</span>
+                    </div>
+                    <div class="schema-body">
+                        <table class="params-table">
+                            <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th></tr></thead>
+                            <tbody>
+                                <tr><td class="param-name">id</td><td class="param-type">serial</td><td>PRIMARY KEY</td><td>--</td></tr>
+                                <tr><td class="param-name">name</td><td class="param-type">varchar(100)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">resourceType</td><td class="param-type">varchar(50)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">path</td><td class="param-type">varchar(255)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">iqnSuffix</td><td class="param-type">varchar(255)</td><td>--</td><td>--</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Clients -->
+                <div class="schema-card">
+                    <div class="schema-header">
+                        <h3>clients</h3>
+                        <span class="section-badge">Table</span>
+                    </div>
+                    <div class="schema-body">
+                        <table class="params-table">
+                            <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th></tr></thead>
+                            <tbody>
+                                <tr><td class="param-name">id</td><td class="param-type">serial</td><td>PRIMARY KEY</td><td>--</td></tr>
+                                <tr><td class="param-name">name</td><td class="param-type">varchar(100)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">password</td><td class="param-type">varchar(255)</td><td>--</td><td>--</td></tr>
+                                <tr><td class="param-name">leaseTime</td><td class="param-type">integer</td><td>--</td><td>--</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Tarifs -->
+                <div class="schema-card">
+                    <div class="schema-header">
+                        <h3>tarifs</h3>
+                        <span class="section-badge">Table</span>
+                    </div>
+                    <div class="schema-body">
+                        <table class="params-table">
+                            <thead><tr><th>Column</th><th>Type</th><th>Constraints</th><th>References</th></tr></thead>
+                            <tbody>
+                                <tr><td class="param-name">id</td><td class="param-type">serial</td><td>PRIMARY KEY</td><td>--</td></tr>
+                                <tr><td class="param-name">name</td><td class="param-type">varchar(100)</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">time</td><td class="param-type">integer</td><td>NOT NULL</td><td>--</td></tr>
+                                <tr><td class="param-name">price</td><td class="param-type">integer</td><td>NOT NULL</td><td>--</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Smooth scrolling for sidebar links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.querySelector(link.getAttribute('href'));
+                if (target) {
+                    // If it's an endpoint, open it
+                    if (target.classList.contains('endpoint')) {
+                        target.classList.add('open');
+                    }
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -9,4 +9,9 @@ export class PcController {
   async turnOn(@Body('mac') mac: string) {
     return this.pcService.turnOn(mac);
   }
+
+  @Post('turn-off')
+  async turnOff(@Body('ip') ip: string) {
+    return this.pcService.turnOff(ip);
+  }
 }
