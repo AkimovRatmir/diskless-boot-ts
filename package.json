@@ -1,8 +1,8 @@
 {
   "name": "pc-control",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Diskless network boot server (TypeScript prototype): PXE/iPXE, iSCSI disks, Wake-on-LAN",
+  "author": "Ratmir Akimov",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {

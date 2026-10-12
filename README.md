@@ -1,98 +1,86 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# diskless-boot-ts: a diskless network boot server (TypeScript prototype)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+This is the old TypeScript version of my diskless boot system, built from December 2025 to
+March 2026. It lets a room of computers with no local drives boot Windows over the network: each PC
+boots via PXE, gets an iPXE script from this server and starts from its own iSCSI disk. The system
+was later rewritten in Rust, and that version is the finished one. This repository is the prototype
+where the approach was worked out.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## How it works
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+```
+PC powers on (Wake-on-LAN from the API, or the button)
+   │
+   ├─ PXE: the DHCP server points it to ipxe.efi ──► iPXE starts
+   │
+   ├─ iPXE: GET http://server/            ──► autoexec.ipxe
+   │        GET http://server/boot?mac=…  ──► script built for this PC:
+   │                                          the PC is looked up by MAC in PostgreSQL
+   │                                          and gets its own iSCSI target name (IQN)
+   │
+   └─ sanboot iscsi:<server>::::iqn.2025-12.local.pccontrol:<pc name>  ──► Windows boots
 ```
 
-## Compile and run the project
+- **PXE / iPXE over HTTP** (`src/pxeHttp`): serves the iPXE files from `files/` and generates a boot
+  script per computer. Unknown MACs get a message and a reboot. Static files are served with a
+  path-traversal check.
+- **Computers, groups and disks** (`src/computers`, `src/computer_groups`, `src/storage_resources`):
+  each computer has a MAC, a boot image and a write-back disk. Groups give defaults for both, so a
+  whole row of PCs can share one image.
+- **Fresh disk per session** (`scripts/StartSession.ps1`, from the earlier power-on API): on Windows
+  Server, deletes the PC's old differencing VHDX, creates a new one on top of the golden image and
+  enables it in the iSCSI Target Server, so every session starts clean.
+- **Power** (`src/wol`, `scripts/wol2.ps1`): Wake-on-LAN magic packets built by hand, and remote
+  shutdown.
+- **Client time** (`src/clients`, `src/tarif`): client accounts (bcrypt passwords) buy time packages.
+  A scheduler takes one minute off every active client each minute and logs when time runs out.
+- PostgreSQL through Drizzle ORM with SQL migrations. HTML docs for the API and the architecture are
+  in `docs/`.
+
+The first commits are shared with [pc-control](https://github.com/AkimovRatmir/pc-control), the
+power-on API this project grew out of.
+
+## API
+
+| Path | What it does |
+|---|---|
+| `GET /boot?mac=` · `GET /*` | iPXE boot script for a PC · iPXE files |
+| `/computers` · `/computer-groups` · `/storage-resources` | CRUD |
+| `/clients` · `GET /clients/lease/:id` · `POST /clients/:id/purchase/:tarifId` | Clients, time left, buying time |
+| `/tarifs` | Time packages: name, minutes, price |
+| `POST /wol/turn-on` · `POST /wol/turn-off` | Wake-on-LAN · remote shutdown |
+
+## Stack
+
+TypeScript · NestJS · @nestjs/schedule · PostgreSQL · Drizzle ORM · Docker · iPXE · iSCSI ·
+PowerShell · Windows Server iSCSI Target · Hyper-V VHDX
+
+## Running it
+
+The server has to sit on the same network as the PCs, next to a Windows Server with the iSCSI
+Target Server role. A DHCP server must give PXE clients option 66 (this server) and option 67
+(`ipxe.efi`), for example my [dhcpNode](https://github.com/AkimovRatmir/dhcpNode).
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+cp docker/.env.example docker/.env      # database password
+docker compose -f docker/docker-compose.yml up -d
+cp .env.example .env                    # DATABASE_URL with the same password
+npx drizzle-kit migrate
+# download ipxe.efi from https://ipxe.org into files/
+sudo npm run start:dev                  # listens on port 80
 ```
 
-## Run tests
+The iSCSI server address (`192.168.2.1`) and the script paths are set in the code.
 
-```bash
-# unit tests
-$ npm run test
+## Not done yet
 
-# e2e tests
-$ npm run test:e2e
+There's no authentication on the API, and the remote shutdown script isn't included.
 
-# test coverage
-$ npm run test:cov
-```
+## Author
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Ratmir Akimov**: [github.com/AkimovRatmir](https://github.com/AkimovRatmir)
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+All rights reserved. The code is published for viewing only. See [LICENSE](LICENSE).
